@@ -24,8 +24,14 @@ class YouTubeFetcher:
 
     @staticmethod
     def _resolve_default_cookies() -> Optional[Path]:
-        default_path = (Path(__file__).resolve().parent.parent.parent / "data" / "cookies.txt").resolve()
-        return default_path if (default_path.exists() and default_path.stat().st_size > 0) else None
+        data_dir = (Path(__file__).resolve().parent.parent.parent / "data").resolve()
+        downloader_cookies = data_dir / "downloader_cookies.txt"
+        if downloader_cookies.exists() and downloader_cookies.stat().st_size > 0:
+            return downloader_cookies
+        legacy_cookies = data_dir / "cookies.txt"
+        if legacy_cookies.exists() and legacy_cookies.stat().st_size > 0:
+            return legacy_cookies
+        return None
 
     @staticmethod
     def _get_js_runtimes() -> Dict[str, Any]:

@@ -15,7 +15,23 @@ import yt_dlp
 class CookieManager:
     """Manages YouTube session cookies for age-restricted & login-gated videos."""
 
-    DEFAULT_COOKIE_FILE = (Path(__file__).resolve().parent.parent.parent / "data" / "cookies.txt").resolve()
+    DOWNLOADER_COOKIE_FILE = (Path(__file__).resolve().parent.parent.parent / "data" / "downloader_cookies.txt").resolve()
+    LEGACY_COOKIE_FILE = (Path(__file__).resolve().parent.parent.parent / "data" / "cookies.txt").resolve()
+    DEFAULT_COOKIE_FILE = DOWNLOADER_COOKIE_FILE
+
+    @classmethod
+    def resolve_cookie_file(cls, explicit_path: Optional[Path | str] = None) -> Path:
+        """
+        Resolves cookie path prioritizing isolated downloader_cookies.txt over legacy cookies.txt.
+        Keeps downloading session credentials strictly isolated from brand publishing OAuth.
+        """
+        if explicit_path:
+            return Path(explicit_path).resolve()
+        if cls.DOWNLOADER_COOKIE_FILE.exists() and cls.DOWNLOADER_COOKIE_FILE.stat().st_size > 0:
+            return cls.DOWNLOADER_COOKIE_FILE
+        if cls.LEGACY_COOKIE_FILE.exists() and cls.LEGACY_COOKIE_FILE.stat().st_size > 0:
+            return cls.LEGACY_COOKIE_FILE
+        return cls.DOWNLOADER_COOKIE_FILE
 
     @classmethod
     def json_to_netscape(cls, json_str: str) -> str:
@@ -186,9 +202,9 @@ class CookieManager:
             return False, f"[BROWSER_ERR_FAILED] Failed to extract cookies from {browser_name}: {err_msg}", 0
 
     @classmethod
-    def get_cookie_status(cls, cookies_path: Path | str = DEFAULT_COOKIE_FILE) -> Dict[str, Any]:
+    def get_cookie_status(cls, cookies_path: Optional[Path | str] = None) -> Dict[str, Any]:
         """Inspects status of the saved cookies file."""
-        target = Path(cookies_path).resolve()
+        target = cls.resolve_cookie_file(cookies_path)
         if not target.exists() or target.stat().st_size == 0:
             return {
                 "exists": False,
@@ -226,22 +242,22 @@ class CookieManager:
             }
 
     @classmethod
-    def remove_saved_cookies(cls, cookies_path: Path | str = DEFAULT_COOKIE_FILE) -> bool:
+    def remove_saved_cookies(cls, cookies_path: Optional[Path | str] = None) -> bool:
         """Deletes the saved cookies file."""
-        target = Path(cookies_path).resolve()
+        target = cls.resolve_cookie_file(cookies_path)
         if target.exists():
             target.unlink()
             return True
         return False
 
     @classmethod
-    def test_cookie_authentication(cls, cookies_path: Path | str = DEFAULT_COOKIE_FILE) -> Tuple[bool, str]:
+    def test_cookie_authentication(cls, cookies_path: Optional[Path | str] = None) -> Tuple[bool, str]:
         """
         Tests whether the cookies successfully authenticate with YouTube.
         Uses local JS runtimes (Node.js) to solve YouTube signature challenges cleanly.
         """
         import shutil
-        target = Path(cookies_path).resolve()
+        target = cls.resolve_cookie_file(cookies_path)
         if not target.exists() or target.stat().st_size == 0:
             return False, "[AUTH_ERR_NO_COOKIES] No cookies.txt file found. Please paste cookies or link a browser first."
 

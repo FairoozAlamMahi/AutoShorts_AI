@@ -85,6 +85,10 @@ class CandidateClipDTO(BaseModel):
     reason: str = ""
     sub_scores: Dict[str, float] = Field(default_factory=dict)
     scene_category: str = "ACTION"
+    hook_score: Optional[float] = None
+    hook_formula: Optional[str] = None
+    hook_overlay_text: Optional[str] = None
+    hook_breakdown: Dict[str, float] = Field(default_factory=dict)
     custom_layout: Optional[str] = None
     custom_caption_theme: Optional[str] = None
     custom_caption_font_size: Optional[int] = None

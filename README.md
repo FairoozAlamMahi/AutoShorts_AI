@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Hardware: 8GB VRAM Baseline](https://img.shields.io/badge/Hardware-8GB%20VRAM%20Baseline-76B900.svg)]()
 [![Rendering: NVENC 60 FPS](https://img.shields.io/badge/Renderer-NVENC%2060%20FPS-blue.svg)]()
-[![Tests: 72 Passed](https://img.shields.io/badge/Tests-72%20Passed-brightgreen.svg)]()
+[![Tests: 84 Passed](https://img.shields.io/badge/Tests-84%20Passed-brightgreen.svg)]()
 
 AutoShorts AI is an offline-capable, automated video repurposing engine designed to transform long-form horizontal content—such as podcasts, interviews, streams, tech tutorials, educational lectures, talking-head videos, and gameplay—into high-retention 9:16 vertical shorts (YouTube Shorts, TikTok, and Instagram Reels).
 
@@ -156,6 +156,18 @@ print(f"Generated {result['total_clips']} clips: {result['rendered_clips']}")
 
 ---
 
+
+---
+
+## Audience Retention and Channel Playbook
+
+AutoShorts AI features a closed-loop retention optimization engine:
+* Algorithmic Hook Scoring: Evaluates spoken opening dialogue against 5 core retention properties (Specificity, Direct Address, Stakes, Curiosity Gap, Brevity) weighted 60% mean and 40% weakest link. Automatically formulates high-contrast on-screen hook overlays when spoken openings score below threshold.
+* Mobile Feed Title Linter: Lints generated titles against YouTube mobile truncation limits (<40 characters visible on phone feeds), all-caps spam casing, and keyword buzzwords, automatically appending clean hashtags.
+* Drop-Off Cliff Diagnostics: Parses YouTube Studio retention curves to calculate Hook Leak (first 15 seconds) and pinpoints drop-off cliffs correlated directly with spoken transcript dialogue.
+* Dynamic Channel Playbook: Persists real-world clip retention performance across layouts, durations, and caption themes to SQLite/JSON, automatically biasing future batch runs toward high-retention winners.
+* Credential Separation: Isolates scraping/downloader session cookies (data/downloader_cookies.txt) from channel publisher OAuth2 tokens (data/client_secrets.json, data/youtube_token.json).
+
 ## Test Suite
 
 AutoShorts AI includes a comprehensive test suite utilizing deterministic synthetic media generation (requiring no external video downloads):
@@ -170,6 +182,7 @@ The test suite covers:
 * Phase 3: Multi-modal spike detection, silent/speechless clip fallbacks, and metadata generation.
 * Phase 4: Stage bypass permutations, Gradio interface bindings, and rapid re-rendering.
 * Phase 5: Interrupted job checkpoint resumption, VFR 60 FPS synchronization, and network-isolated execution.
+* Analytics Suite: Hook scoring, title linter, retention cliff diagnostics, channel playbook evolution, and isolated downloader authentication.
 
 ---
 

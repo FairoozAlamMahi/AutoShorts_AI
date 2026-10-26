@@ -46,6 +46,9 @@ from ..captions.ass_compiler import ASSCompiler
 from ..captions.sidecar_exporter import SidecarExporter
 from ..rendering.ffmpeg_renderer import FFmpegRenderer
 from ..metadata.service import MetadataService
+from ..analytics.hook_engine import HookEngine
+from ..analytics.title_linter import TitleLinter
+from ..core.channel_playbook import ChannelPlaybook
 
 
 class JobOrchestrator:
@@ -59,6 +62,7 @@ class JobOrchestrator:
         scratch_dir: Path | str = "data/scratch",
         export_dir: Path | str = "data/exports",
         ffmpeg_renderer: Optional[FFmpegRenderer] = None,
+        playbook: Optional[ChannelPlaybook] = None,
     ) -> None:
         self.db = db
         self.resource_guard = resource_guard
@@ -68,6 +72,7 @@ class JobOrchestrator:
         self.inspector = MediaInspector()
         self.yt_fetcher = YouTubeFetcher()
         self.renderer = ffmpeg_renderer or FFmpegRenderer()
+        self.playbook = playbook or ChannelPlaybook(playbook_path=self.scratch_dir.parent / "channel_playbook.json")
 
     @staticmethod
     def _classify_error(stage: str, err: Exception) -> str:
@@ -338,6 +343,27 @@ class JobOrchestrator:
                 else:
                     c.custom_bgm_track = toggles.bgm_track
 
+                # Spoken Hook Evaluation & On-Screen Hook Formulation
+                spoken_words: List[str] = []
+                if clip_tr and clip_tr.segments:
+                    for s in clip_tr.segments:
+                        spoken_words.extend([w.word for w in s.words])
+                        if len(spoken_words) >= 12:
+                            break
+                spoken_opening = " ".join(spoken_words) if spoken_words else (c.transcript_snippet[:80] if c.transcript_snippet else "")
+                hook_res = HookEngine.score_hook(spoken_opening)
+                c.hook_score = hook_res["overall_score"]
+                c.hook_breakdown = hook_res["sub_scores"]
+                c.hook_formula = hook_res.get("weakest_link", "")
+
+                # If spoken hook is weak (<65), formulate high-contrast on-screen text hook overlay
+                if c.hook_score < 65:
+                    c.hook_overlay_text = HookEngine.generate_hook_overlay(
+                        transcript_snippet=c.transcript_snippet,
+                        game_name=toggles.game_name_context,
+                        scene_type=c.scene_category,
+                    )
+
             # -------------------------------------------------------------
             # Stage 5: Title & Description Generation
             # -------------------------------------------------------------
@@ -358,6 +384,11 @@ class JobOrchestrator:
                     toggles=toggles,
                     yt_meta=yt_meta,
                     transcript=clip_transcript,
+                )
+                # Lint and format title to mobile-safe <40 char rules
+                meta.primary_title = TitleLinter.clean_and_format_title(
+                    meta.primary_title,
+                    game_name=toggles.game_name_context,
                 )
                 metadata_map[c.clip_index] = meta
 
@@ -383,9 +414,12 @@ class JobOrchestrator:
                 eff_bgm = c.custom_bgm_track if c.custom_bgm_track is not None else toggles.bgm_track
 
                 ass_path: Optional[Path] = None
-                if toggles.should_compile_subtitles(has_words=has_words):
+                has_overlay = bool(c.hook_overlay_text and c.hook_overlay_text.strip())
+                should_compile = toggles.should_compile_subtitles(has_words=has_words) or (has_overlay and toggles.captions_mode != CaptionMode.NONE)
+
+                if should_compile:
                     if toggles.captions_mode in (CaptionMode.BURNED_IN_ANIMATED, CaptionMode.BURNED_IN_PLUS_SIDECAR):
-                        chunks = PhraseChunker.chunk_animated_pop(clip_transcript)
+                        chunks = PhraseChunker.chunk_animated_pop(clip_transcript) if has_words else []
                         ass_path = self.scratch_dir / job_id / f"clip_{c.clip_index}.ass"
                         ASSCompiler.compile_ass(
                             chunks,
@@ -394,9 +428,10 @@ class JobOrchestrator:
                             theme=eff_theme,
                             font_size=eff_font_size,
                             layout_mode=eff_layout,
+                            hook_overlay_text=c.hook_overlay_text,
                         )
                     elif toggles.captions_mode == CaptionMode.BURNED_IN_CLASSIC:
-                        chunks = PhraseChunker.chunk_classic(clip_transcript)
+                        chunks = PhraseChunker.chunk_classic(clip_transcript) if has_words else []
                         ass_path = self.scratch_dir / job_id / f"clip_{c.clip_index}.ass"
                         ASSCompiler.compile_ass(
                             chunks,
@@ -405,6 +440,7 @@ class JobOrchestrator:
                             theme=eff_theme,
                             font_size=eff_font_size,
                             layout_mode=eff_layout,
+                            hook_overlay_text=c.hook_overlay_text,
                         )
 
                     if toggles.should_export_sidecar(has_words=has_words):
@@ -418,7 +454,7 @@ class JobOrchestrator:
                     start_sec=c.start_sec,
                     duration_sec=c.duration_sec,
                     layout_mode=eff_layout,
-                    ass_path=ass_path if toggles.should_burn_in_subtitles(has_words=has_words) else None,
+                    ass_path=ass_path if (toggles.should_burn_in_subtitles(has_words=has_words) or (has_overlay and toggles.captions_mode != CaptionMode.NONE)) else None,
                     audio_mode=toggles.audio_process_mode,
                     facecam_pos=toggles.facecam_pos,
                     bgm_path=eff_bgm,
@@ -449,6 +485,8 @@ class JobOrchestrator:
                 prov.toggles_snapshot["layout_mode"] = eff_layout.value
                 prov.toggles_snapshot["caption_theme"] = eff_theme.value
                 prov.toggles_snapshot["scene_category"] = c.scene_category
+                prov.toggles_snapshot["hook_score"] = c.hook_score
+                prov.toggles_snapshot["hook_overlay"] = c.hook_overlay_text
                 RightsManager.export_provenance_json(prov, clip_base.with_suffix(".provenance.json"))
     
                 # Write Metadata Sidecar

@@ -28,6 +28,10 @@ from .core.resource_guard import ResourceGuard
 from .providers.registry import ModelRegistry
 from .core.orchestrator import JobOrchestrator
 from .core.youtube_uploader import YouTubeUploader
+from .core.channel_playbook import ChannelPlaybook
+from .analytics.hook_engine import HookEngine
+from .analytics.title_linter import TitleLinter
+from .analytics.retention_diagnostics import RetentionDiagnostics
 from .analysis.scene_classifier import MultimodalSceneClassifier, NarrativeBoundaryRefiner, SceneClassificationResult
 
 
@@ -44,12 +48,14 @@ class AgentToolkit:
         self.db = DatabaseManager(db_path=str(data_dir / "shorts_factory.db"))
         self.guard = ResourceGuard(scratch_dir=str(self.scratch_dir), disk_threshold_gb=10.0)
         self.registry = ModelRegistry(registry_path=str(data_dir / "models_registry.json"))
+        self.playbook = ChannelPlaybook(playbook_path=data_dir / "channel_playbook.json")
         self.orchestrator = JobOrchestrator(
             db=self.db,
             resource_guard=self.guard,
             model_registry=self.registry,
             scratch_dir=self.scratch_dir,
             export_dir=self.export_dir,
+            playbook=self.playbook,
         )
         self.uploader = YouTubeUploader(
             client_secrets_path=data_dir / "client_secrets.json",
@@ -172,10 +178,152 @@ class AgentToolkit:
     ) -> Dict[str, Any]:
         """Uploads or schedules a short to YouTube via OAuth2."""
         return self.uploader.upload_short(
-            video_file_path=clip_path,
+            video_path=clip_path,
             title=title,
             description=description,
             tags=tags or ["#shorts", "#gaming"],
             privacy_status=privacy,
             publish_at_iso=publish_at_iso,
         )
+
+    def run_autonomous_campaign(
+        self,
+        source_url_or_path: str,
+        target_count: int = 3,
+        strategy: str = "AUTO_OPTIMIZED",
+        publish_mode: str = "OFF",
+        game_name: Optional[str] = None,
+        per_clip_rules: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        Executes an end-to-end autonomous executive campaign:
+        - Consults Channel Playbook for winning layout and optimal duration
+        - Discovers highlights and formulates viral hook overlays
+        - Renders final vertical Shorts
+        - Optionally queues or uploads directly to YouTube
+        """
+        recs = self.playbook.get_recommendations(game_name=game_name)
+        opt_layout = recs.get("recommended_layout", LayoutMode.LAYOUT_HYBRID_CINEMA_STACK.value)
+        opt_theme = recs.get("recommended_theme", CaptionTheme.MRBEAST_YELLOW.value)
+        min_dur = recs.get("recommended_min_duration_sec", 30.0)
+        max_dur = recs.get("recommended_max_duration_sec", 55.0)
+
+        job_result = self.run_customized_job(
+            source_url_or_path=source_url_or_path,
+            target_count=target_count,
+            layout_mode=opt_layout,
+            caption_theme=opt_theme,
+            game_name=game_name,
+            per_clip_rules=per_clip_rules,
+            smart_layout_distribution=True,
+            min_duration_sec=min_dur,
+            max_duration_sec=max_dur,
+        )
+
+        rendered_clips = job_result.get("rendered_clips", [])
+        uploads: List[Dict[str, Any]] = []
+
+        if publish_mode in ("DRAFT_UPLOAD", "SCHEDULE_STAGGERED") and rendered_clips:
+            from datetime import timedelta
+            now = datetime.now(timezone.utc)
+            for idx, clip_p in enumerate(rendered_clips):
+                p = Path(clip_p)
+                meta_p = p.with_suffix(".meta.json")
+                title = p.stem
+                desc = "Automated high-retention Short"
+                tags = ["Shorts", "Gaming"]
+                if meta_p.exists():
+                    try:
+                        m_data = json.loads(meta_p.read_text(encoding="utf-8"))
+                        title = m_data.get("primary_title", title)
+                        desc = m_data.get("small_description", desc)
+                        tags = m_data.get("tags", tags)
+                    except Exception:
+                        pass
+
+                sched_time = None
+                if publish_mode == "SCHEDULE_STAGGERED":
+                    sched_time = (now + timedelta(hours=6 * (idx + 1))).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+                privacy = "private" if (publish_mode in ("SCHEDULE_STAGGERED", "DRAFT_UPLOAD")) else "public"
+                up_res = self.upload_to_youtube(
+                    clip_path=str(p),
+                    title=title,
+                    description=desc,
+                    tags=tags,
+                    privacy=privacy,
+                    publish_at_iso=sched_time,
+                )
+                uploads.append(up_res)
+
+        return {
+            "job_id": job_result.get("job_id"),
+            "status": "COMPLETED",
+            "campaign_strategy": strategy,
+            "playbook_recommendations_used": recs,
+            "total_clips_generated": len(rendered_clips),
+            "rendered_clips": rendered_clips,
+            "uploads": uploads,
+        }
+
+    def audit_retention_and_update_playbook(
+        self,
+        retention_csv_or_text: str | Path,
+        clip_id: str,
+        duration_sec: Optional[float] = None,
+        layout_mode: str = "LAYOUT_B_CENTER_CROP",
+        caption_theme: str = "MRBEAST_YELLOW",
+        scene_category: str = "ACTION",
+        views: int = 0,
+        transcript: Optional[Union[TranscriptDTO, List[Dict[str, Any]]]] = None,
+    ) -> Dict[str, Any]:
+        """
+        Parses YouTube retention curve, detects drop cliffs paired with spoken lines,
+        and records clip performance into the Channel Playbook memory.
+        """
+        raw_pts = RetentionDiagnostics.load_retention_data(retention_csv_or_text)
+
+        segments = None
+        if isinstance(transcript, TranscriptDTO):
+            segments = [s.model_dump() for s in transcript.segments]
+        elif isinstance(transcript, list):
+            segments = transcript
+
+        audit = RetentionDiagnostics.analyze_retention(
+            retention_data=raw_pts,
+            duration_sec=duration_sec,
+            transcript_segments=segments,
+        )
+
+        if "error" not in audit:
+            ret_pct = audit.get("end_pct", 70.0)
+            hook_leak = audit.get("hook_leak_pct", 0.0)
+            self.playbook.record_clip_performance(
+                clip_id=clip_id,
+                layout_mode=layout_mode,
+                caption_theme=caption_theme,
+                duration_sec=duration_sec or 45.0,
+                scene_category=scene_category,
+                retention_pct=ret_pct,
+                views=views,
+                hook_leak_pct=hook_leak,
+                notes=f"Audited: verdict={audit.get('verdict')}",
+            )
+
+        return {
+            "clip_id": clip_id,
+            "audit": audit,
+            "playbook_total_analyzed": self.playbook.data.get("total_analyzed_clips", 0),
+            "updated_recommendations": self.playbook.get_recommendations(),
+        }
+
+    def get_channel_performance_briefing(self) -> Dict[str, Any]:
+        """Returns executive briefing on winning channel formats and retention intelligence."""
+        recs = self.playbook.get_recommendations()
+        return {
+            "total_analyzed_clips": self.playbook.data.get("total_analyzed_clips", 0),
+            "top_performing_layouts": self.playbook.data.get("top_performing_layouts", {}),
+            "optimal_duration_range": self.playbook.data.get("optimal_duration_range", {}),
+            "winning_caption_themes": self.playbook.data.get("winning_caption_themes", {}),
+            "recommendations": recs,
+        }

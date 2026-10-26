@@ -15,9 +15,12 @@ from src.core.resource_guard import ResourceGuard
 from src.providers.registry import ModelRegistry
 from src.config.manager import ConfigManager
 from src.core.orchestrator import JobOrchestrator
+from src.core.channel_playbook import ChannelPlaybook
+from src.core.youtube_uploader import YouTubeUploader
 from src.ui.dashboard import create_run_tab
 from src.ui.review_drawer import create_review_tab
 from src.ui.model_manager_tab import create_model_manager_tab
+from src.ui.analytics_tab import create_analytics_tab
 
 
 def build_app(
@@ -26,8 +29,13 @@ def build_app(
     model_registry: ModelRegistry,
     orchestrator: JobOrchestrator,
     config_mgr: ConfigManager,
+    uploader: Optional[YouTubeUploader] = None,
+    playbook: Optional[ChannelPlaybook] = None,
 ) -> gr.Blocks:
     """Builds and wires the complete multi-tab Gradio UI."""
+    u = uploader or YouTubeUploader()
+    p = playbook or ChannelPlaybook()
+
     with gr.Blocks(title="ShortsFactory Local") as demo:
         gr.Markdown("# 🎬 ShortsFactory Local — AI Gaming Highlights & Shorts Generator")
 
@@ -37,6 +45,9 @@ def build_app(
 
             with gr.Tab("🎞️ Review & Fast Fix-Up"):
                 create_review_tab(orchestrator, db)
+
+            with gr.Tab("📈 Analytics & Channel Playbook"):
+                create_analytics_tab(orchestrator, db, u, p)
 
             with gr.Tab("🤖 AI Models & Providers"):
                 create_model_manager_tab(model_registry, resource_guard)
@@ -78,15 +89,29 @@ def main():
     resource_guard = ResourceGuard(scratch_dir=str(data_dir / "scratch"), disk_threshold_gb=10.0)
     model_registry = ModelRegistry(registry_path=str(data_dir / "models_registry.json"))
     config_mgr = ConfigManager(config_path=str(data_dir / "settings.json"), db=db)
+    playbook = ChannelPlaybook(playbook_path=data_dir / "channel_playbook.json")
+    uploader = YouTubeUploader(
+        client_secrets_path=data_dir / "client_secrets.json",
+        token_path=data_dir / "youtube_token.json",
+    )
     orchestrator = JobOrchestrator(
         db=db,
         resource_guard=resource_guard,
         model_registry=model_registry,
         scratch_dir=str(data_dir / "scratch"),
         export_dir=str(data_dir / "exports"),
+        playbook=playbook,
     )
 
-    demo = build_app(db, resource_guard, model_registry, orchestrator, config_mgr)
+    demo = build_app(
+        db,
+        resource_guard,
+        model_registry,
+        orchestrator,
+        config_mgr,
+        uploader=uploader,
+        playbook=playbook,
+    )
     demo.launch(
         server_name=args.host,
         server_port=args.port,
