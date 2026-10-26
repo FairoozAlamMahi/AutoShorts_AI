@@ -1,0 +1,31 @@
+{
+  "default_toggles": {
+    "discovery_mode": "FULL_AUTO",
+    "captions_mode": "BURNED_IN_ANIMATED",
+    "layout_mode": "LAYOUT_HYBRID_CINEMA_STACK",
+    "metadata_mode": "LOCAL_VLM",
+    "audio_process_mode": "LOUDNORM_EBU_R128",
+    "transcription_enabled": true,
+    "use_speech_scoring": true,
+    "vlm_verification_enabled": true,
+    "target_clip_count": 3,
+    "manual_timestamps": [],
+    "ownership_type": "MY_OWN_VIDEO",
+    "rights_status": "ORIGINAL_RECORDING",
+    "game_name_context": null,
+    "min_duration_sec": 18.0,
+    "max_duration_sec": 58.0,
+    "pre_roll_sec": 10.0,
+    "post_roll_sec": 6.0,
+    "min_gap_sec": 30.0
+  },
+  "active_whisper_model_id": "faster-whisper-large-v3-turbo",
+  "active_vlm_model_id": "qwen2.5vl:3b",
+  "max_download_resolution": 1080,
+  "disk_warning_threshold_gb": 10.0,
+  "vram_warning_threshold_mb": 1024.0,
+  "auto_purge_scratch": true,
+  "output_dir": "data/exports",
+  "scratch_dir": "data/scratch",
+  "models_dir": "data/models"
+}

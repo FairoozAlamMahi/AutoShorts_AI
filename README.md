@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Hardware: 8GB VRAM Baseline](https://img.shields.io/badge/Hardware-8GB%20VRAM%20Baseline-76B900.svg)]()
 [![Rendering: NVENC 60 FPS](https://img.shields.io/badge/Renderer-NVENC%2060%20FPS-blue.svg)]()
-[![Tests: 53 Passed](https://img.shields.io/badge/Tests-53%20Passed-brightgreen.svg)]()
+[![Tests: 72 Passed](https://img.shields.io/badge/Tests-72%20Passed-brightgreen.svg)]()
 
 AutoShorts AI is an offline-capable, automated video repurposing engine designed to transform long-form horizontal content—such as podcasts, interviews, streams, tech tutorials, educational lectures, talking-head videos, and gameplay—into high-retention 9:16 vertical shorts (YouTube Shorts, TikTok, and Instagram Reels).
 
@@ -123,7 +123,10 @@ Open your browser and navigate to `http://127.0.0.1:7860`.
 | :--- | :--- | :--- |
 | Discovery Mode | `FULL_AUTO`, `MANUAL_ONLY`, `HYBRID` | Automated multi-modal detection, exact timestamp slicing, or combined discovery. |
 | Caption Mode | `BURNED_IN_ANIMATED`, `BURNED_IN_CLASSIC`, `EXTERNAL_SIDECAR_ONLY`, `NONE` | Kinetic pop animation, classic two-line subtitles, external `.srt`/`.vtt`, or captions disabled. |
-| Vertical Layout | `LAYOUT_HYBRID_CINEMA_STACK`, `LAYOUT_A_BLUR_FIT`, `LAYOUT_B_CENTER_CROP`, `LAYOUT_RAW_16_9` | 4:3 cinema stack, blur fit, 9:16 center crop, or horizontal 16:9 trim. |
+| Caption Theme | `MRBEAST_YELLOW`, `NEON_CYBER_GREEN`, `TIKTOK_RED_BOX`, `ELECTRIC_BLUE`, `CLEAN_WHITE` | Color palette and visual emphasis presets for rendered captions. |
+| Video Layout | `LAYOUT_HYBRID_CINEMA_STACK`, `LAYOUT_4_3_BLUR_FIT`, `LAYOUT_4_3_HORIZONTAL`, `LAYOUT_A_BLUR_FIT`, `LAYOUT_B_CENTER_CROP`, `LAYOUT_FACECAM_SPLIT`, `LAYOUT_RAW_16_9` | 9:16 vertical stack, 4:3 full-screen blur fit ('show it all'), 4:3 center crop, 9:16 blur fit, 9:16 center crop, streamer facecam split, or 16:9 trim. |
+| Smart Distribution | `True`, `False` | Automatically pairs action moments with high-tempo framing and comedy/dialogue scenes with 4:3 full-screen framing. |
+| Per-Clip Rules | String (e.g. `'2B, 3A'`, `'1-2: LAYOUT_B, 3-5: LAYOUT_4_3_BLUR_FIT'`) | Granular per-clip layout, theme, and styling overrides within a single run. |
 | Metadata Mode | `LOCAL_VLM`, `EXTERNAL_MCP_AGENT`, `RULE_BASED`, `OFF` | Hook titles and hashtags via local Ollama, external MCP agent manifest, or rule-based templates. |
 | Audio Normalization | `LOUDNORM_EBU_R128`, `RAW_PASSTHROUGH` | Broadcast standard -14 LUFS loudness normalization or unmodified audio passthrough. |
 
@@ -134,27 +137,21 @@ Open your browser and navigate to `http://127.0.0.1:7860`.
 To integrate AutoShorts AI with an autonomous agent:
 
 ```python
-from shorts_factory.src.agent_toolkit import AgentToolkit
-from shorts_factory.src.config.schema import PreRunToggles, LayoutMode, CaptionMode
+from src.agent_toolkit import AgentToolkit
 
 # Initialize the programmatic agent toolkit
 toolkit = AgentToolkit()
 
-# Define processing configuration
-toggles = PreRunToggles(
-    layout_mode=LayoutMode.LAYOUT_HYBRID_CINEMA_STACK,
-    caption_mode=CaptionMode.BURNED_IN_ANIMATED,
+# Execute an automated job with heterogeneous per-clip rules
+result = toolkit.run_customized_job(
+    source_url_or_path="https://www.youtube.com/watch?v=...",
+    target_count=5,
+    per_clip_rules="2B, 3 with 4:3",
+    smart_layout_distribution=True,
+    caption_theme="MRBEAST_YELLOW",
+    game_name="GTA 6",
 )
-
-# Submit a job
-job = toolkit.create_job(
-    source_path="path/to/source_video.mp4",
-    toggles=toggles,
-)
-
-# Execute job stages
-results = toolkit.run_pipeline(job.id)
-print(f"Generated {len(results.clips)} vertical shorts.")
+print(f"Generated {result['total_clips']} clips: {result['rendered_clips']}")
 ```
 
 ---

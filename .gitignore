@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# Pytest / Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Media & Temporary Artifacts
+*.mp4
+*.m4a
+*.wav
+*.webm
+*.mkv
+*.thumb.jpg
+*.thumb.png
+*.ass
+*.srt
+*.vtt
+
+# Local Runtime Data & Databases
+data/*.db
+data/*.db-wal
+data/*.db-shm
+data/*.db-journal
+data/cookies.txt
+*.cookies.txt
+cookies.txt
+*client_secrets*.json
+*youtube_token*.json
+data/scratch/*
+!data/scratch/.gitkeep
+data/exports/*
+!data/exports/.gitkeep
+data/models/*
+!data/models/.gitkeep
+
+# Logs & Temporary Files
+*.log
+temp_rerender*
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

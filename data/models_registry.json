@@ -1,0 +1,120 @@
+{
+  "active_stt": "faster-whisper-large-v3-turbo",
+  "active_vlm": "qwen2.5vl:3b",
+  "models": [
+    {
+      "id": "faster-whisper-large-v3-turbo",
+      "type": "stt",
+      "provider": "faster_whisper",
+      "display_name": "Faster-Whisper Large v3 Turbo (CTranslate2)",
+      "disk_size_gb": 1.5,
+      "vram_req_mb": 1800.0,
+      "is_default": true,
+      "parameters": {
+        "repo_or_size": "deepdml/faster-whisper-large-v3-turbo-ct2",
+        "compute_type": "float16"
+      }
+    },
+    {
+      "id": "faster-whisper-small.en",
+      "type": "stt",
+      "provider": "faster_whisper",
+      "display_name": "Faster-Whisper Small (English Only - Ultra Fast)",
+      "disk_size_gb": 0.5,
+      "vram_req_mb": 800.0,
+      "is_default": false,
+      "parameters": {
+        "repo_or_size": "Systran/faster-whisper-small.en",
+        "compute_type": "float16"
+      }
+    },
+    {
+      "id": "faster-whisper-medium",
+      "type": "stt",
+      "provider": "faster_whisper",
+      "display_name": "Faster-Whisper Medium (CTranslate2)",
+      "disk_size_gb": 1.5,
+      "vram_req_mb": 2200.0,
+      "is_default": false,
+      "parameters": {
+        "repo_or_size": "Systran/faster-whisper-medium",
+        "compute_type": "float16"
+      }
+    },
+    {
+      "id": "faster-whisper-large-v3",
+      "type": "stt",
+      "provider": "faster_whisper",
+      "display_name": "Faster-Whisper Large v3 (Max Accuracy)",
+      "disk_size_gb": 3.1,
+      "vram_req_mb": 3800.0,
+      "is_default": false,
+      "parameters": {
+        "repo_or_size": "Systran/faster-whisper-large-v3",
+        "compute_type": "float16"
+      }
+    },
+    {
+      "id": "local-openai-stt",
+      "type": "stt",
+      "provider": "openai_compatible",
+      "display_name": "Local HTTP STT Endpoint (whisper.cpp / Speaches)",
+      "disk_size_gb": 0.0,
+      "vram_req_mb": 0.0,
+      "is_default": false,
+      "parameters": {
+        "base_url": "http://127.0.0.1:8000/v1"
+      }
+    },
+    {
+      "id": "qwen2.5vl:3b",
+      "type": "vlm",
+      "provider": "ollama",
+      "display_name": "Qwen 2.5 VL 3B (Ollama)",
+      "disk_size_gb": 2.5,
+      "vram_req_mb": 2800.0,
+      "is_default": true,
+      "parameters": {
+        "model_tag": "qwen2.5vl:3b",
+        "keep_alive": "0m"
+      }
+    },
+    {
+      "id": "qwen2.5vl:7b",
+      "type": "vlm",
+      "provider": "ollama",
+      "display_name": "Qwen 2.5 VL 7B (Ollama - High Accuracy)",
+      "disk_size_gb": 4.8,
+      "vram_req_mb": 5200.0,
+      "is_default": false,
+      "parameters": {
+        "model_tag": "qwen2.5vl:7b",
+        "keep_alive": "0m"
+      }
+    },
+    {
+      "id": "Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf",
+      "type": "vlm",
+      "provider": "llama_cpp",
+      "display_name": "Qwen 2.5 VL 3B Q4_K_M (Local GGUF)",
+      "disk_size_gb": 2.5,
+      "vram_req_mb": 2800.0,
+      "is_default": false,
+      "parameters": {
+        "gguf_file": "data/models/vlm/Qwen2.5-VL-3B-Instruct-Q4_K_M.gguf"
+      }
+    },
+    {
+      "id": "external-mcp-agent",
+      "type": "vlm",
+      "provider": "mcp_agent",
+      "display_name": "External MCP Agent Offload (Antigravity / Claude)",
+      "disk_size_gb": 0.0,
+      "vram_req_mb": 0.0,
+      "is_default": false,
+      "parameters": {
+        "export_keyframe_strips": true
+      }
+    }
+  ]
+}
