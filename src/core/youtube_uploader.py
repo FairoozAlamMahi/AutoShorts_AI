@@ -2,10 +2,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
+import subprocess
 from pathlib import Path
 from typing import Optional, List, Dict, Any, Tuple
 from datetime import datetime
+
+logger = logging.getLogger(__name__)
 
 
 class YouTubeUploader:
@@ -15,6 +19,7 @@ class YouTubeUploader:
     TOKEN_FILE = Path("data/youtube_token.json")
     SCOPES = [
         "https://www.googleapis.com/auth/youtube.upload",
+        "https://www.googleapis.com/auth/youtube.force-ssl",
         "https://www.googleapis.com/auth/youtube.readonly",
         "https://www.googleapis.com/auth/yt-analytics.readonly",
     ]
@@ -113,6 +118,79 @@ class YouTubeUploader:
         except Exception as e:
             return False, f"OAuth authentication failed: {e}"
 
+    @classmethod
+    def ensure_vertical_short(cls, video_path: Path) -> Path:
+        """
+        Guarantees that a video destined for YouTube Shorts is strictly vertical (width <= height).
+        If a horizontal video is detected, wraps it into a 1080x1920 vertical Short canvas
+        with blurred letterboxing so YouTube's backend algorithm always classifies it as a Short.
+        """
+        try:
+            cmd_probe = [
+                "ffprobe", "-v", "error",
+                "-show_entries", "stream=width,height",
+                "-of", "json", str(video_path)
+            ]
+            res = subprocess.run(cmd_probe, capture_output=True, text=True, check=True)
+            data = json.loads(res.stdout)
+            streams = data.get("streams", [])
+            v_stream = next((s for s in streams if "width" in s and s["width"]), None)
+            if v_stream:
+                w = int(v_stream["width"])
+                h = int(v_stream["height"])
+                if w > h:
+                    logger.warning(f"Video {video_path.name} is horizontal ({w}x{h}). Auto-adapting to 1080x1920 vertical Short canvas.")
+                    out_vertical = video_path.parent / f"{video_path.stem}_vertical.mp4"
+                    fg = (
+                        "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=28:2,eq=brightness=-0.12[bg];"
+                        "[0:v]scale=1080:-2[fg];"
+                        "[bg][fg]overlay=(W-w)/2:(H-h)/2[vout]"
+                    )
+                    cmd_convert = [
+                        "ffmpeg", "-y",
+                        "-i", str(video_path),
+                        "-filter_complex", fg,
+                        "-map", "[vout]",
+                        "-map", "0:a:0?",
+                        "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
+                        "-c:a", "copy",
+                        str(out_vertical)
+                    ]
+                    subprocess.run(cmd_convert, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+                    if out_vertical.exists() and out_vertical.stat().st_size > 0:
+                        return out_vertical
+        except Exception as ex:
+            logger.warning(f"Shorts vertical aspect ratio guard check skipped: {ex}")
+        return video_path
+
+    def post_top_level_comment(self, video_id: str, comment_text: str) -> Optional[str]:
+        """Posts a high-engagement creator comment on the uploaded Short to stimulate algorithm push."""
+        if not self.is_authenticated() or not video_id:
+            return None
+        try:
+            from googleapiclient.discovery import build
+            from google.oauth2.credentials import Credentials
+
+            token_data = json.loads(self.token_path.read_text(encoding="utf-8"))
+            creds = Credentials.from_authorized_user_info(token_data)
+            youtube = build("youtube", "v3", credentials=creds)
+
+            body = {
+                "snippet": {
+                    "videoId": video_id,
+                    "topLevelComment": {
+                        "snippet": {
+                            "textOriginal": comment_text.strip()
+                        }
+                    }
+                }
+            }
+            res = youtube.commentThreads().insert(part="snippet", body=body).execute()
+            return res.get("id")
+        except Exception as ex:
+            logger.warning(f"Could not post engagement comment on {video_id}: {ex}")
+            return None
+
     def upload_short(
         self,
         video_path: Path | str,
@@ -121,15 +199,20 @@ class YouTubeUploader:
         tags: Optional[List[str]] = None,
         privacy_status: str = "private",
         publish_at_iso: Optional[str] = None,
+        auto_comment_text: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Uploads a vertical Short to YouTube with metadata and optional scheduling.
         privacy_status: 'private', 'unlisted', or 'public'.
         publish_at_iso: RFC 3339 datetime string (e.g. 2026-10-30T15:00:00Z) for scheduled publishing.
+        auto_comment_text: Optional text to post as author's top-level engagement comment.
         """
         v_path = Path(video_path).resolve()
         if not v_path.exists():
             raise FileNotFoundError(f"Video file not found: {v_path}")
+
+        # Enforce vertical Short framing (prevents accidental horizontal upload as regular video)
+        v_path = self.ensure_vertical_short(v_path)
 
         # Ensure #Shorts tag is present for YouTube algorithm indexing
         clean_title = title.strip()
@@ -189,10 +272,17 @@ class YouTubeUploader:
 
             video_id = response.get("id")
             video_url = f"https://www.youtube.com/shorts/{video_id}"
+
+            # Post creator's top-level engagement comment if provided
+            comment_id = None
+            if video_id and auto_comment_text:
+                comment_id = self.post_top_level_comment(video_id, auto_comment_text)
+
             return {
                 "success": True,
                 "video_id": video_id,
                 "url": video_url,
+                "comment_id": comment_id,
                 "message": f"Successfully uploaded to YouTube Shorts: {video_url}",
                 "status": response.get("status", {}),
             }

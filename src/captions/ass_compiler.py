@@ -110,7 +110,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         out.parent.mkdir(parents=True, exist_ok=True)
 
         # Coordinate resolution and margins adapted to layout aspect ratio
-        if layout_mode in (LayoutMode.LAYOUT_4_3_BLUR_FIT, LayoutMode.LAYOUT_4_3_HORIZONTAL):
+        if layout_mode == LayoutMode.LAYOUT_4_3_HORIZONTAL:
             play_res_x = 1440
             play_res_y = 1080
             margin_v_anim = 160

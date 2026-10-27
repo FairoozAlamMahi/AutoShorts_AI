@@ -212,8 +212,8 @@ def test_orchestrator_batch_queue(tmp_path: Path):
 def test_layout_4_3_filtergraphs():
     """Verifies FFmpeg filtergraphs for 4:3 Blur Fit ('Show It All') and 4:3 Horizontal Center Crop."""
     fg_blur = LayoutBuilder.build_filtergraph(layout_mode=LayoutMode.LAYOUT_4_3_BLUR_FIT)
-    assert "scale=1440:1080" in fg_blur
-    assert "scale=1440:810" in fg_blur
+    assert "scale=1080:1920" in fg_blur
+    assert "scale=1080:1440" in fg_blur
     assert "boxblur=28:2" in fg_blur
     assert "overlay=(W-w)/2:(H-h)/2" in fg_blur
 
@@ -224,7 +224,7 @@ def test_layout_4_3_filtergraphs():
 
 def test_layout_dimensions():
     """Verifies LayoutBuilder.get_dimensions returns accurate resolution pairs."""
-    assert LayoutBuilder.get_dimensions(LayoutMode.LAYOUT_4_3_BLUR_FIT) == (1440, 1080)
+    assert LayoutBuilder.get_dimensions(LayoutMode.LAYOUT_4_3_BLUR_FIT) == (1080, 1920)
     assert LayoutBuilder.get_dimensions(LayoutMode.LAYOUT_4_3_HORIZONTAL) == (1440, 1080)
     assert LayoutBuilder.get_dimensions(LayoutMode.LAYOUT_RAW_16_9) == (1920, 1080)
     assert LayoutBuilder.get_dimensions(LayoutMode.LAYOUT_HYBRID_CINEMA_STACK) == (1080, 1920)
@@ -243,7 +243,7 @@ def test_ass_compiler_4_3_aspect_ratio(tmp_path: Path):
         chunks=chunks,
         mode=CaptionMode.BURNED_IN_ANIMATED,
         output_path=ass_file,
-        layout_mode=LayoutMode.LAYOUT_4_3_BLUR_FIT,
+        layout_mode=LayoutMode.LAYOUT_4_3_HORIZONTAL,
     )
     assert ass_file.exists()
     content = ass_file.read_text(encoding="utf-8")
@@ -253,11 +253,11 @@ def test_ass_compiler_4_3_aspect_ratio(tmp_path: Path):
 
 
 def test_ffmpeg_4_3_renders(tmp_path: Path):
-    """Verifies physical rendering of 4:3 Blur Fit and 4:3 Horizontal with MediaInspector."""
+    """Verifies physical rendering of 4:3 Blur Fit (1080x1920) and 4:3 Horizontal (1440x1080) with MediaInspector."""
     src_video = SyntheticMediaFactory.create_test_video(tmp_path / "source_16_9.mp4", duration_sec=3.0, has_audio=True)
     renderer = FFmpegRenderer()
 
-    # 1. Test 4:3 Blur Fit
+    # 1. Test 4:3 Blur Fit (Vertical 9:16 Shorts Container: 1080x1920)
     out_blur = tmp_path / "out_4_3_blur.mp4"
     renderer.render_clip(
         source_video=src_video,
@@ -268,10 +268,10 @@ def test_ffmpeg_4_3_renders(tmp_path: Path):
     )
     assert out_blur.exists()
     info_blur = renderer.inspector.inspect(out_blur)
-    assert info_blur.width == 1440
-    assert info_blur.height == 1080
+    assert info_blur.width == 1080
+    assert info_blur.height == 1920
 
-    # 2. Test 4:3 Horizontal Crop
+    # 2. Test 4:3 Horizontal Crop (1440x1080)
     out_crop = tmp_path / "out_4_3_crop.mp4"
     renderer.render_clip(
         source_video=src_video,
@@ -408,10 +408,10 @@ def test_orchestrator_heterogeneous_multi_clip_customization(tmp_path: Path):
     assert info1.width == 1080
     assert info1.height == 1920
 
-    # Check Clip 2 is 4:3 Blur Fit (1440x1080)
+    # Check Clip 2 is 4:3 Blur Fit (1080x1920)
     info2 = orchestrator.renderer.inspector.inspect(rendered[1])
-    assert info2.width == 1440
-    assert info2.height == 1080
+    assert info2.width == 1080
+    assert info2.height == 1920
 
     # Check Provenance records store effective layouts
     prov1 = json.loads(Path(rendered[0]).with_suffix(".provenance.json").read_text(encoding="utf-8"))

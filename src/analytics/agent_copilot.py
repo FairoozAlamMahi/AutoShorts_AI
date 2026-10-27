@@ -130,6 +130,14 @@ class AgentCoPilotSynthesizer:
             vlm_summary=vlm_summary,
         )
 
+        # 4. Generate Auto-Pinned High-Engagement Question Comment
+        engagement_comment = cls.generate_engagement_comment(
+            transcript_text=transcript_text,
+            game_name=clean_game,
+            scene_type=scene_type,
+            title=best_title,
+        )
+
         agent_meta = ClipMetadataDTO(
             primary_title=best_title,
             alternative_titles=alt_titles,
@@ -142,10 +150,38 @@ class AgentCoPilotSynthesizer:
             "clip_index": clip_index,
             "agent_metadata": agent_meta,
             "starting_hook_overlay": hook_overlay,
+            "engagement_comment": engagement_comment,
             "top_lint_score": scored_titles[0][0] if scored_titles else 75,
             "extracted_quotes": quotes,
             "source_game": clean_game,
         }
+
+    @classmethod
+    def generate_engagement_comment(
+        cls,
+        transcript_text: str = "",
+        game_name: Optional[str] = None,
+        scene_type: str = "ACTION",
+        title: str = "",
+    ) -> str:
+        """
+        Drafts a high-engagement creator question comment to pin on YouTube Shorts.
+        Prompts viewer replies to boost the YouTube Shorts algorithmic velocity.
+        """
+        game = (game_name or "Gaming").strip().title()
+        quotes = cls.extract_salient_quotes(transcript_text, max_words=5)
+
+        if "jason" in transcript_text.lower() or "lucia" in transcript_text.lower():
+            return "Did they make the right call here? What would you do in Vice City? Let us know below."
+        elif quotes:
+            clean_q = quotes[0].rstrip(",.!?")
+            return f'When they said "{clean_q}"... what was your honest reaction? Drop it in the comments.'
+        elif scene_type.upper() in ("FAIL", "BUSTED"):
+            return "Rate this fail from 1 to 10 in the comments."
+        elif scene_type.upper() in ("CLUTCH", "VICTORY"):
+            return "Could you have survived this play? Honest answers only in the comments."
+        else:
+            return "What is your honest take on this moment? Drop your thoughts below."
 
     @classmethod
     def judge_and_select_best_metadata(

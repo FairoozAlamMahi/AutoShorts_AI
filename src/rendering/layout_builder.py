@@ -13,7 +13,7 @@ class LayoutBuilder:
     @staticmethod
     def get_dimensions(layout_mode: LayoutMode) -> tuple[int, int]:
         """Returns the target (width, height) resolution for a given LayoutMode."""
-        if layout_mode in (LayoutMode.LAYOUT_4_3_BLUR_FIT, LayoutMode.LAYOUT_4_3_HORIZONTAL):
+        if layout_mode == LayoutMode.LAYOUT_4_3_HORIZONTAL:
             return 1440, 1080
         elif layout_mode == LayoutMode.LAYOUT_RAW_16_9:
             return 1920, 1080
@@ -118,13 +118,13 @@ class LayoutBuilder:
             filters.append("[cam][game]vstack=inputs=2[v_comp]")
 
         elif layout_mode == LayoutMode.LAYOUT_4_3_BLUR_FIT:
-            # 1. Background: Blurred, 12% darkened 1440x1080
+            # 1. Background: Blurred, 12% darkened 1080x1920 (Vertical canvas for YouTube Shorts)
             filters.append(
-                "[0:v]scale=1440:1080:force_original_aspect_ratio=increase,crop=1440:1080,boxblur=28:2,eq=brightness=-0.12[bg]"
+                "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=28:2,eq=brightness=-0.12[bg]"
             )
-            # 2. Foreground: 100% widescreen fit scaled to 1440x810 (shows 100% full screen action)
-            filters.append("[0:v]scale=1440:810:flags=lanczos[fg]")
-            # 3. Centered overlay (leaving 135px blurred bars top & bottom)
+            # 2. Foreground: Center 4:3 action zone scaled to 1080x1440
+            filters.append("[0:v]crop=ih*4/3:ih:(iw-ow)/2:0,scale=1080:1440:flags=lanczos[fg]")
+            # 3. Centered overlay on 1080x1920 canvas
             filters.append("[bg][fg]overlay=(W-w)/2:(H-h)/2[v_comp]")
 
         elif layout_mode == LayoutMode.LAYOUT_4_3_HORIZONTAL:

@@ -518,16 +518,17 @@ class JobOrchestrator:
                 )
                 rendered_paths.append(output_mp4)
     
-                # Auto-Thumbnail Frame Picker (1080x1920)
+                # Multi-Candidate Thumbnail Generation & A/B Metadata Logging (thumb_A, thumb_B, thumb_C)
                 thumb_path = clip_base.with_suffix(".thumb.jpg")
                 try:
-                    self.renderer.generate_thumbnail(
+                    self.renderer.generate_multi_thumbnails(
                         video_path=output_mp4,
-                        output_jpg=thumb_path,
-                        timestamp_sec=min(2.0, c.duration_sec * 0.5),
+                        output_dir=clip_base.parent,
+                        duration_sec=c.duration_sec,
+                        hook_overlay_text=c.hook_overlay_text,
                     )
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning(f"Multi-thumbnail generation error: {e}")
     
                 # Write Provenance Sidecar
                 prov = RightsManager.build_provenance(

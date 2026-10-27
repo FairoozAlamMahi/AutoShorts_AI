@@ -5,6 +5,9 @@ enforces API quota limits, and dispatches staggered scheduled publishing.
 from __future__ import annotations
 
 import json
+import sys
+import subprocess
+import shutil
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, Any, List, Optional, Tuple, TYPE_CHECKING
@@ -217,9 +220,116 @@ class AutonomousDaemon:
         result["quota_status"] = self.quota_guard.get_status()
         return result
 
+    def scrape_target_channels(
+        self,
+        max_videos_per_target: int = 3,
+        auto_download: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Scrapes target YouTube channels and playlists configured in autopilot_config.json.
+        Extracts new video URLs, downloads the high-res source into watch_folder,
+        and returns discovered sources for autonomous processing.
+        """
+        targets = self.config.get("target_channels", [])
+        if not targets:
+            return []
+
+        scraped_entries: List[Dict[str, Any]] = []
+        ytdlp_bin = shutil.which("yt-dlp") or shutil.which("yt-dlp.exe")
+        ytdlp_cmd_base = [ytdlp_bin] if ytdlp_bin else [sys.executable, "-m", "yt_dlp"]
+
+        cookie_path = self.root / "data" / "cookies_downloader.txt"
+        cookie_args = ["--cookies", str(cookie_path)] if cookie_path.exists() else []
+
+        for target in targets:
+            target_url = str(target).strip()
+            if not target_url:
+                continue
+
+            cmd = ytdlp_cmd_base + cookie_args + [
+                "--flat-playlist",
+                "--dump-single-json",
+                "--playlist-end", str(max_videos_per_target),
+                "--no-warnings",
+                target_url,
+            ]
+            try:
+                proc = subprocess.run(cmd, capture_output=True, text=True, timeout=30, shell=False)
+                if proc.returncode != 0 or not proc.stdout.strip():
+                    continue
+
+                info = json.loads(proc.stdout)
+                entries = info.get("entries", []) or [info]
+                for entry in entries:
+                    if not entry:
+                        continue
+                    vid_id = entry.get("id") or entry.get("url")
+                    vid_title = entry.get("title", f"video_{vid_id}")
+                    webpage_url = entry.get("url") or f"https://www.youtube.com/watch?v={vid_id}"
+                    if not webpage_url.startswith("http"):
+                        webpage_url = f"https://www.youtube.com/watch?v={vid_id}"
+
+                    if vid_id in self.processed_sources or webpage_url in self.processed_sources:
+                        continue
+
+                    target_file = None
+                    if auto_download:
+                        safe_title = "".join(c for c in vid_title if c.isalnum() or c in (" ", "_", "-")).strip()[:40]
+                        dest_template = str(self.watch_folder / f"{vid_id}_{safe_title}.%(ext)s")
+                        dl_cmd = ytdlp_cmd_base + cookie_args + [
+                            "-f", "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
+                            "--merge-output-format", "mp4",
+                            "--output", dest_template,
+                            "--no-warnings",
+                            webpage_url,
+                        ]
+                        subprocess.run(dl_cmd, capture_output=True, text=True, timeout=180, shell=False)
+                        matched = list(self.watch_folder.glob(f"{vid_id}*.*"))
+                        if matched:
+                            target_file = str(matched[0])
+
+                    item = {
+                        "video_id": vid_id,
+                        "title": vid_title,
+                        "url": webpage_url,
+                        "downloaded_path": target_file,
+                        "target_channel": target_url,
+                    }
+                    scraped_entries.append(item)
+            except Exception:
+                pass
+
+        return scraped_entries
+
+    def run_unattended_campaign(
+        self,
+        source_path_or_url: str,
+        target_count: int = 3,
+        publish_mode: str = "SCHEDULE_STAGGERED",
+        game_name: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """
+        100% Unattended 'Hand Over the Keys' Campaign Execution:
+        - Ingests video from local watch folder or YouTube URL
+        - Consults Channel Playbook for optimal layout/theme bias
+        - Dynamically switches 4:3 / zoom during cutscenes
+        - Synthesizes titles, quotes, starting hooks, and auto-pinned engagement comments via Agent Co-Pilot
+        - Renders vertical Shorts (guaranteeing 1080x1920 Short container format)
+        - Produces 3 candidate thumbnails (thumb_A, thumb_B, thumb_C) for A/B tracking
+        - Enforces daily quota and schedules staggered cloud uploads (5.5h intervals)
+        - Logs analytics and updates Playbook
+        """
+        return self.process_source(
+            source_url_or_path=source_path_or_url,
+            target_count=target_count,
+            publish_mode=publish_mode,
+            game_name=game_name,
+        )
+
     def run_cycle(self) -> Dict[str, Any]:
         """Executes one complete pass of the autonomous operator."""
         catchup_res = self.run_startup_catchup()
+        scraped_sources = self.scrape_target_channels(max_videos_per_target=2, auto_download=True)
         watch_files = self.scan_watch_folder()
         processed_reports = []
 
@@ -241,6 +351,7 @@ class AutonomousDaemon:
         return {
             "timestamp_iso": datetime.now(timezone.utc).isoformat(),
             "catchup": catchup_res,
+            "scraped_sources_found": len(scraped_sources),
             "watch_files_found": len(watch_files),
             "jobs_executed": len(processed_reports),
             "reports": processed_reports,

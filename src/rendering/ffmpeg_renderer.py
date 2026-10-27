@@ -1,6 +1,7 @@
 """FFmpeg single-pass renderer supporting NVENC hardware encoding with CPU fallback."""
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -174,6 +175,65 @@ class FFmpegRenderer:
         ]
         subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True, shell=False)
         return out
+
+    def generate_multi_thumbnails(
+        self,
+        video_path: Path | str,
+        output_dir: Optional[Path | str] = None,
+        duration_sec: Optional[float] = None,
+        hook_overlay_text: Optional[str] = None,
+    ) -> Dict[str, Path]:
+        """
+        Generates 3 multi-candidate cover thumbnails (thumb_A, thumb_B, thumb_C) for A/B testing:
+        - thumb_A.jpg: 15% timestamp (Hook opener)
+        - thumb_B.jpg: 50% timestamp (Climax / action peak)
+        - thumb_C.jpg: 85% timestamp (Reaction / payoff moment)
+        Logs candidate styling and metadata in <clip_stem>.thumbnails.json.
+        """
+        v = Path(video_path).resolve()
+        parent_dir = Path(output_dir).resolve() if output_dir else v.parent
+        parent_dir.mkdir(parents=True, exist_ok=True)
+        stem = v.stem
+
+        dur = duration_sec
+        if dur is None:
+            try:
+                info = self.inspector.inspect(v)
+                dur = info.duration_sec
+            except Exception:
+                dur = 30.0
+
+        ts_a = max(0.5, dur * 0.15)
+        ts_b = max(1.0, dur * 0.50)
+        ts_c = max(1.5, dur * 0.85)
+
+        p_a = parent_dir / f"{stem}.thumb_A.jpg"
+        p_b = parent_dir / f"{stem}.thumb_B.jpg"
+        p_c = parent_dir / f"{stem}.thumb_C.jpg"
+        p_main = parent_dir / f"{stem}.thumb.jpg"
+
+        self.generate_thumbnail(v, p_a, timestamp_sec=ts_a)
+        self.generate_thumbnail(v, p_b, timestamp_sec=ts_b)
+        self.generate_thumbnail(v, p_c, timestamp_sec=ts_c)
+
+        if not p_main.exists() and p_a.exists():
+            import shutil
+            shutil.copyfile(p_a, p_main)
+
+        meta_p = parent_dir / f"{stem}.thumbnails.json"
+        meta_data = {
+            "clip": stem,
+            "candidates": {
+                "thumb_A": {"path": str(p_a), "timestamp_sec": round(ts_a, 2), "label": "Hook Frame"},
+                "thumb_B": {"path": str(p_b), "timestamp_sec": round(ts_b, 2), "label": "Climax Action"},
+                "thumb_C": {"path": str(p_c), "timestamp_sec": round(ts_c, 2), "label": "Payoff Frame"},
+            },
+            "selected": "thumb_A",
+            "hook_text": hook_overlay_text or "",
+        }
+        meta_p.write_text(json.dumps(meta_data, indent=2), encoding="utf-8")
+
+        return {"A": p_a, "B": p_b, "C": p_c, "main": p_main}
 
     def rerender_single_clip(
         self,

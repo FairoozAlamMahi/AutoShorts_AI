@@ -176,8 +176,9 @@ class AgentToolkit:
         tags: Optional[List[str]] = None,
         privacy: str = "private",
         publish_at_iso: Optional[str] = None,
+        auto_comment_text: Optional[str] = None,
     ) -> Dict[str, Any]:
-        """Uploads or schedules a short to YouTube via OAuth2."""
+        """Uploads or schedules a short to YouTube via OAuth2 with automated engagement comment."""
         return self.uploader.upload_short(
             video_path=clip_path,
             title=title,
@@ -185,6 +186,7 @@ class AgentToolkit:
             tags=tags or ["#shorts", "#gaming"],
             privacy_status=privacy,
             publish_at_iso=publish_at_iso,
+            auto_comment_text=auto_comment_text,
         )
 
     def run_autonomous_campaign(
@@ -246,6 +248,21 @@ class AgentToolkit:
                 if publish_mode == "SCHEDULE_STAGGERED":
                     sched_time = (now + timedelta(hours=6 * (idx + 1))).strftime("%Y-%m-%dT%H:%M:%SZ")
 
+                auto_comment = None
+                if meta_p.exists():
+                    try:
+                        m_data = json.loads(meta_p.read_text(encoding="utf-8"))
+                        auto_comment = m_data.get("engagement_comment")
+                    except Exception:
+                        pass
+
+                if not auto_comment:
+                    from .analytics.agent_copilot import AgentCoPilotSynthesizer
+                    auto_comment = AgentCoPilotSynthesizer.generate_engagement_comment(
+                        game_name=game_name,
+                        title=title,
+                    )
+
                 privacy = "private" if (publish_mode in ("SCHEDULE_STAGGERED", "DRAFT_UPLOAD")) else "public"
                 up_res = self.upload_to_youtube(
                     clip_path=str(p),
@@ -254,6 +271,7 @@ class AgentToolkit:
                     tags=tags,
                     privacy=privacy,
                     publish_at_iso=sched_time,
+                    auto_comment_text=auto_comment,
                 )
                 uploads.append(up_res)
 
