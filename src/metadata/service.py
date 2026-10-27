@@ -8,6 +8,7 @@ from ..config.schema import MetadataMode, OwnershipType, PreRunToggles
 from ..core.dto import ClipMetadataDTO, YouTubeMetadataDTO, TranscriptDTO, CandidateClipDTO
 from ..providers.base import VLMProvider
 from ..ingest.rights_manager import RightsManager
+from ..analytics.agent_copilot import AgentCoPilotSynthesizer
 
 
 class MetadataService:
@@ -60,6 +61,33 @@ class MetadataService:
             "source_title": yt_meta.title if yt_meta else None,
         }
 
+        # Mode: AGENT_CO_PILOT (Agent synthesizes metadata from VLM observations and judges best)
+        if toggles.metadata_mode == MetadataMode.AGENT_CO_PILOT:
+            agent_synth = AgentCoPilotSynthesizer.synthesize_agent_metadata(
+                clip_index=clip.clip_index,
+                transcript_text=transcript.full_text if (transcript and not transcript.is_skipped) else "",
+                vlm_summary=vlm_summary,
+                game_name=resolved_game,
+                scene_type=getattr(clip, "scene_category", "ACTION"),
+                attribution_text=attribution,
+            )
+            vlm_meta = None
+            if self.vlm_provider:
+                try:
+                    vlm_meta = self.vlm_provider.generate_titles_and_description(context)
+                except Exception:
+                    pass
+            judgment = AgentCoPilotSynthesizer.judge_and_select_best_metadata(
+                agent_synthesis=agent_synth,
+                vlm_proposed_meta=vlm_meta,
+                game_name=resolved_game,
+            )
+            selected = judgment["selected_metadata"]
+            selected.attribution_text = attribution
+            if attribution and attribution not in selected.small_description:
+                selected.small_description = f"{selected.small_description}\n\n{attribution}".strip()
+            return selected
+
         # Mode: LOCAL_VLM or EXTERNAL_MCP_AGENT
         if toggles.metadata_mode in (MetadataMode.LOCAL_VLM, MetadataMode.EXTERNAL_MCP_AGENT) and self.vlm_provider:
             try:
@@ -69,10 +97,10 @@ class MetadataService:
                     meta.small_description = f"{meta.small_description}\n\n{attribution}".strip()
                 return meta
             except Exception:
-                pass  # Fallback to rule engine
+                pass  # Fallback to rule / agent copilot engine
 
         # Mode: RULE_BASED (or fallback)
-        meta = self._generate_rule_based_metadata(clip, resolved_game, transcript, yt_meta)
+        meta = self._generate_rule_based_metadata(clip, resolved_game, transcript, yt_meta, vlm_summary)
         meta.attribution_text = attribution
         if attribution:
             meta.small_description = f"{meta.small_description}\n\n{attribution}".strip()
@@ -84,15 +112,23 @@ class MetadataService:
         game_name: str,
         transcript: Optional[TranscriptDTO] = None,
         yt_meta: Optional[YouTubeMetadataDTO] = None,
+        vlm_summary: Optional[str] = None,
     ) -> ClipMetadataDTO:
-        # Check for reaction words in transcript
+        clean_game = game_name.strip()
+        tag_game = f"#{re.sub(r'[^a-zA-Z0-9]', '', clean_game).lower()}"
         speech_text = transcript.full_text.lower() if (transcript and not transcript.is_skipped) else ""
+        raw_speech = transcript.full_text if (transcript and not transcript.is_skipped) else ""
+
+        # Extract punchy dialogue quotes
+        quotes = AgentCoPilotSynthesizer.extract_salient_quotes(raw_speech, max_words=5)
+
         has_clutch = "clutch" in speech_text
         has_insane = "insane" in speech_text or "no way" in speech_text
         has_1hp = "1 hp" in speech_text or "one hp" in speech_text
 
-        clean_game = game_name.strip()
-        tag_game = f"#{re.sub(r'[^a-zA-Z0-9]', '', clean_game).lower()}"
+        # Character awareness
+        has_jason = "jason" in speech_text
+        has_lucia = "lucia" in speech_text
 
         if has_1hp:
             primary = f"1 HP {clean_game.upper()} CLUTCH!"
@@ -100,6 +136,13 @@ class MetadataService:
         elif has_clutch:
             primary = f"THE CLEANEST {clean_game.upper()} CLUTCH!"
             alts = [f"Unreal 1v4 in {clean_game}", f"Never Give Up in {clean_game}"]
+        elif quotes:
+            clean_q = quotes[0].rstrip(",.!?")
+            primary = f'"{clean_q}" in {clean_game}'
+            alts = [f"When They Said \"{clean_q}\"", f"{clean_game} Moment #{clip.clip_index}"]
+        elif has_jason and has_lucia:
+            primary = f"Jason & Lucia in {clean_game}!"
+            alts = [f"Wildest {clean_game} Getaway", f"Clean {clean_game} Play #{clip.clip_index}"]
         elif has_insane:
             primary = f"THIS {clean_game.upper()} MOMENT WAS INSANE!"
             alts = [f"No Way This Just Happened ({clean_game})", f"Peak {clean_game} Gameplay"]

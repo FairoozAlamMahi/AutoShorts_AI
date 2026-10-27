@@ -141,10 +141,5 @@ class OllamaVLMProvider(VLMProvider):
         except Exception:
             pass
 
-        # Rule-based fallback
-        return ClipMetadataDTO(
-            primary_title=f"INSANE {game.upper()} MOMENT!",
-            alternative_titles=[f"Unbelievable {game} Clutch", f"Top {game} Highlight"],
-            small_description=f"Watch this crazy moment in {game}! Don't forget to like and subscribe for more.",
-            tags=[f"#{game.lower().replace(' ', '')}", "#gaming", "#shorts", "#clutch"],
-        )
+        # If Ollama server is unreachable or generation failed, raise to trigger contextual fallback in MetadataService
+        raise RuntimeError(f"Ollama local VLM service unreachable for model: {self.model_id}")

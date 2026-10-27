@@ -32,6 +32,7 @@ from .core.channel_playbook import ChannelPlaybook
 from .analytics.hook_engine import HookEngine
 from .analytics.title_linter import TitleLinter
 from .analytics.retention_diagnostics import RetentionDiagnostics
+from .analytics.agent_copilot import AgentCoPilotSynthesizer
 from .analysis.scene_classifier import MultimodalSceneClassifier, NarrativeBoundaryRefiner, SceneClassificationResult
 
 
@@ -326,4 +327,94 @@ class AgentToolkit:
             "optimal_duration_range": self.playbook.data.get("optimal_duration_range", {}),
             "winning_caption_themes": self.playbook.data.get("winning_caption_themes", {}),
             "recommendations": recs,
+        }
+
+    def inspect_vlm_observations(self, job_id_or_path: str) -> Dict[str, Any]:
+        """
+        Reads the structured VLM visual observations and Whisper transcripts for a job.
+        Enables the AI Agent to review what happened visually and dialogue-wise in the video.
+        """
+        p = Path(job_id_or_path)
+        if not p.exists() or p.name != "vlm_observation_bundle.json":
+            # Search in scratch
+            candidate = self.root / "data" / "scratch" / job_id_or_path / "vlm_observation_bundle.json"
+            if candidate.exists():
+                p = candidate
+            else:
+                raise FileNotFoundError(f"VLM observation bundle not found for: {job_id_or_path}")
+
+        return json.loads(p.read_text(encoding="utf-8"))
+
+    def synthesize_and_judge_metadata(
+        self,
+        job_id_or_path: str,
+        update_disk: bool = True,
+    ) -> Dict[str, Any]:
+        """
+        Reviews VLM visual observations and Whisper speech semantics across all clips in a job.
+        Synthesizes high-CTR Agent titles, descriptions, and on-screen hooks,
+        algorithmically compares Agent proposals against VLM proposals using TitleLinter,
+        and optionally updates the export .meta.json sidecars on disk.
+        """
+        bundle = self.inspect_vlm_observations(job_id_or_path)
+        job_id = bundle.get("job_id", "")
+        game_name = bundle.get("game_name", "Gaming")
+        clips = bundle.get("clips", [])
+        judgments: List[Dict[str, Any]] = []
+
+        exports_dir = self.root / "data" / "exports" / job_id
+
+        for c in clips:
+            idx = c.get("clip_index", 1)
+            synth = AgentCoPilotSynthesizer.synthesize_agent_metadata(
+                clip_index=idx,
+                transcript_text=c.get("transcript", ""),
+                vlm_summary=c.get("vlm_summary"),
+                detected_events=c.get("vlm_events", []),
+                game_name=game_name,
+                scene_type=c.get("scene_category", "ACTION"),
+            )
+
+            # Build VLM meta if VLM title proposed
+            vlm_prop_title = c.get("vlm_proposed_title")
+            vlm_meta = None
+            if vlm_prop_title:
+                from .core.dto import ClipMetadataDTO
+                vlm_meta = ClipMetadataDTO(
+                    primary_title=vlm_prop_title,
+                    alternative_titles=[],
+                    small_description=f"Highlight from {game_name}",
+                    tags=["#shorts", "#gaming"],
+                )
+
+            judgment = AgentCoPilotSynthesizer.judge_and_select_best_metadata(
+                agent_synthesis=synth,
+                vlm_proposed_meta=vlm_meta,
+                game_name=game_name,
+            )
+            judgments.append({
+                "clip_index": idx,
+                "winner": judgment["winner"],
+                "reason": judgment["reason"],
+                "agent_score": judgment["agent_score"],
+                "vlm_score": judgment["vlm_score"],
+                "selected_title": judgment["selected_metadata"].primary_title,
+                "selected_hook_overlay": judgment["selected_hook_overlay"],
+                "selected_metadata": judgment["selected_metadata"].model_dump(),
+            })
+
+            # If update_disk is enabled, write updated .meta.json to exports
+            if update_disk and exports_dir.exists():
+                meta_path = exports_dir / f"clip_{idx:02d}.meta.json"
+                if meta_path.exists():
+                    meta_path.write_text(
+                        judgment["selected_metadata"].model_dump_json(indent=2),
+                        encoding="utf-8",
+                    )
+
+        return {
+            "job_id": job_id,
+            "game_name": game_name,
+            "total_clips_reviewed": len(clips),
+            "judgments": judgments,
         }

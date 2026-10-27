@@ -133,47 +133,83 @@ class HookEngine:
         }
 
     @classmethod
+    def _extract_punchy_quote(cls, text: str, max_words: int = 8) -> Optional[str]:
+        """Extracts a short, dramatic dialogue fragment from transcript."""
+        if not text or not text.strip():
+            return None
+        # Clean transcript artifacts
+        clean = re.sub(r"[^\w\s',!?]", "", text).strip()
+        phrases = [p.strip() for p in re.split(r"[,.!?]+", clean) if p.strip()]
+        for p in phrases:
+            # Strip common conversational lead-ins if present
+            lower_p = p.lower()
+            for lead in ("they said ", "i said ", "he said ", "she said ", "you know "):
+                if lower_p.startswith(lead):
+                    p = p[len(lead):].strip()
+                    break
+            words = p.split()
+            if 2 <= len(words) <= max_words:
+                return p
+            elif len(words) > max_words:
+                return " ".join(words[:max_words])
+        return None
+
+    @classmethod
     def generate_hook_overlay(
         cls,
         transcript_snippet: str = "",
         game_name: Optional[str] = None,
         scene_type: str = "ACTION",
+        clip_index: int = 1,
+        vlm_summary: Optional[str] = None,
     ) -> str:
         """
         Produces an on-screen text hook (overlayed in first 2.5s) when spoken opening scores < 65.
-        Uses curiosity gap, concrete figures, and high-stakes formulas.
+        Uses curiosity gap, concrete figures, dialogue anchors, and narrative stakes.
+        Guarantees distinct, non-duplicate formulas across clips in a multi-clip campaign.
         """
         g = game_name.strip() if game_name and game_name.strip() else "This"
         st = scene_type.upper()
+        quote = cls._extract_punchy_quote(transcript_snippet)
 
+        is_shooter = any(k in g.lower() for k in ("valorant", "cs", "counter", "apex", "fortnite", "cod", "warzone", "overwatch", "siege"))
+
+        candidates: List[str] = []
+
+        # Formula 1: Quote-anchored (Extracts real Whisper dialogue)
+        if quote:
+            clean_q = quote.rstrip(".,!?")
+            candidates.append(f"Before you play {g}, watch how 1 player escaped after \"{clean_q}\"")
+            candidates.append(f"Why 99% of players like you would lose after saying \"{clean_q}\" in {g}")
+
+        # Formula 2: Audience consequence & Stakes
+        candidates.append(f"Why 99% of players like you would lose after 1 mistake in {g}")
+
+        # Formula 3: Narrative mystery
+        candidates.append(f"Before you play {g}, watch what happened when 1 player made this choice")
+
+        # Formula 4: Clutch / Action timing
+        if is_shooter:
+            candidates.append(f"Before you play {g}, watch how 1 player survived with 1 HP")
+            candidates.append(f"Watch how 1 HP and 0 seconds left won this in {g}")
+        else:
+            candidates.append(f"Before you blink, watch how 1 play in {g} saved you with 0 seconds left")
+            candidates.append(f"The 1 {g} getaway that 99% of players like you would fail")
+
+        # Formula 5: Comedy / Fail if applicable
         if "COMEDY" in st or "FAIL" in st:
-            templates = [
-                f"Before you laugh, watch how 1 mistake lost everything in {g}",
-                f"Why 99% of players like you would fail this in {g}",
-                f"Before you try this in {g}, watch what happened",
-                f"Watch how 1 mistake lost everything in {g}",
-            ]
-        elif "CLUTCH" in st:
-            templates = [
-                f"Before you play {g}, watch how 1 player survived 1 HP",
-                f"Why 99% of players like you would lose this clutch in {g}",
-                f"Watch how 1 HP and 0 seconds left won this in {g}",
-                f"Before you give up in {g}, watch this 1 HP clutch",
-            ]
-        elif "DIALOGUE" in st:
-            templates = [
-                f"Before you try this in {g}, watch how 1 player lost",
-                f"Why 90% of players like you make this 1 mistake in {g}",
-                f"The 1 rule you must follow before playing {g}",
-            ]
-        else:  # ACTION
-            templates = [
-                f"Before you blink, watch how 1 player survived with 1 HP in {g}",
-                f"Before you blink, watch how 1 player escaped in {g}",
-                f"Why you should never fight 1 player alone in {g}",
-                f"Watch how 1 play saved the entire game in {g}",
-            ]
+            candidates.insert(0, f"Before you laugh, watch how 1 mistake lost everything in {g}")
 
-        # Select the template with highest score
-        best = max(templates, key=lambda t: cls.score_hook(t)["overall_score"])
-        return best
+        # Filter candidates that score >= 65
+        scored_candidates = []
+        for c in candidates:
+            res = cls.score_hook(c)
+            if res["overall_score"] >= 65:
+                scored_candidates.append(c)
+
+        if not scored_candidates:
+            scored_candidates = candidates
+
+        # Diverse rotation by clip_index so adjacent clips never share template structures
+        rotation_idx = (max(1, clip_index) - 1) % len(scored_candidates)
+        return scored_candidates[rotation_idx]

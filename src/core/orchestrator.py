@@ -48,6 +48,7 @@ from ..rendering.ffmpeg_renderer import FFmpegRenderer
 from ..metadata.service import MetadataService
 from ..analytics.hook_engine import HookEngine
 from ..analytics.title_linter import TitleLinter
+from ..analytics.agent_copilot import AgentCoPilotSynthesizer
 from ..core.channel_playbook import ChannelPlaybook
 
 
@@ -362,6 +363,8 @@ class JobOrchestrator:
                         transcript_snippet=c.transcript_snippet,
                         game_name=toggles.game_name_context,
                         scene_type=c.scene_category,
+                        clip_index=c.clip_index,
+                        vlm_summary=v_res.scene_summary if v_res else None,
                     )
 
             # -------------------------------------------------------------
@@ -369,7 +372,7 @@ class JobOrchestrator:
             # -------------------------------------------------------------
             _notify("STAGE_5_METADATA_GENERATION", 75.0)
             vlm_provider = None
-            if toggles.metadata_mode in (MetadataMode.LOCAL_VLM, MetadataMode.EXTERNAL_MCP_AGENT):
+            if toggles.metadata_mode in (MetadataMode.LOCAL_VLM, MetadataMode.EXTERNAL_MCP_AGENT, MetadataMode.AGENT_CO_PILOT):
                 try:
                     vlm_provider = self.model_registry.create_vlm_provider()
                 except Exception:
@@ -377,20 +380,55 @@ class JobOrchestrator:
 
             meta_service = MetadataService(vlm_provider=vlm_provider)
             metadata_map: Dict[int, ClipMetadataDTO] = {}
+            used_titles: Set[str] = set()
+
             for c in candidates:
                 clip_transcript = TranscriptEditor.slice_transcript_for_window(transcript, c.start_sec, c.end_sec)
+                v_res = vlm_results.get(c.clip_index)
                 meta = meta_service.generate_metadata(
                     clip=c,
                     toggles=toggles,
                     yt_meta=yt_meta,
                     transcript=clip_transcript,
+                    vlm_summary=v_res.scene_summary if v_res else None,
                 )
                 # Lint and format title to mobile-safe <40 char rules
-                meta.primary_title = TitleLinter.clean_and_format_title(
+                formatted_title = TitleLinter.clean_and_format_title(
                     meta.primary_title,
                     game_name=toggles.game_name_context,
                 )
+                # Deduplication check: if title was already used in this batch, differentiate it
+                if formatted_title in used_titles:
+                    base_part = formatted_title.replace(" #Shorts", "").replace(" #shorts", "")
+                    formatted_title = f"{base_part} Pt.{c.clip_index} #Shorts"
+                used_titles.add(formatted_title)
+                meta.primary_title = formatted_title
                 metadata_map[c.clip_index] = meta
+
+            # Export VLM & Transcript observation bundle for Agent Co-Pilot inspection
+            bundle_clips = []
+            for c in candidates:
+                v_res = vlm_results.get(c.clip_index)
+                clip_tr = TranscriptEditor.slice_transcript_for_window(transcript, c.start_sec, c.end_sec)
+                bundle_clips.append({
+                    "clip_index": c.clip_index,
+                    "start_sec": c.start_sec,
+                    "end_sec": c.end_sec,
+                    "duration_sec": c.duration_sec,
+                    "scene_category": c.scene_category,
+                    "transcript": clip_tr.full_text if clip_tr else "",
+                    "vlm_summary": v_res.scene_summary if v_res else "Action gameplay",
+                    "vlm_events": v_res.detected_events if v_res else [],
+                    "vlm_proposed_title": metadata_map[c.clip_index].primary_title if c.clip_index in metadata_map else "",
+                    "hook_overlay_text": c.hook_overlay_text,
+                    "keyframe_paths": c.keyframe_paths,
+                })
+            AgentCoPilotSynthesizer.export_observation_bundle(
+                bundle_path=self.scratch_dir / job_id / "vlm_observation_bundle.json",
+                job_id=job_id,
+                game_name=toggles.game_name_context or "Gaming",
+                clips_data=bundle_clips,
+            )
 
             # -------------------------------------------------------------
             # Stage 6 & 7: Subtitle Compilation & FFmpeg Render

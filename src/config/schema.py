@@ -49,6 +49,7 @@ class FacecamPosition(str, Enum):
 class MetadataMode(str, Enum):
     LOCAL_VLM = "LOCAL_VLM"
     EXTERNAL_MCP_AGENT = "EXTERNAL_MCP_AGENT"
+    AGENT_CO_PILOT = "AGENT_CO_PILOT"
     RULE_BASED = "RULE_BASED"
     OFF = "OFF"
 
