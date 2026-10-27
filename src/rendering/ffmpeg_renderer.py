@@ -45,6 +45,7 @@ class FFmpegRenderer:
         facecam_pos: FacecamPosition = FacecamPosition.TOP_LEFT,
         bgm_path: Optional[Path | str] = None,
         bgm_volume_duck_db: float = -18.0,
+        cutscene_intervals: Optional[List[Tuple[float, float]]] = None,
     ) -> Path:
         """
         Renders a single Short with layout framing, optional .ass subtitle burn-in,
@@ -64,6 +65,7 @@ class FFmpegRenderer:
             ass_path=ass_path,
             fonts_dir=self.fonts_dir if self.fonts_dir.exists() else None,
             facecam_pos=facecam_pos,
+            cutscene_intervals=cutscene_intervals,
         )
 
         has_bgm = bgm_path is not None and Path(bgm_path).exists()
@@ -184,6 +186,7 @@ class FFmpegRenderer:
         audio_mode: AudioProcessMode = AudioProcessMode.LOUDNORM_EBU_R128,
         facecam_pos: FacecamPosition = FacecamPosition.TOP_LEFT,
         bgm_path: Optional[Path | str] = None,
+        cutscene_intervals: Optional[List[Tuple[float, float]]] = None,
     ) -> Path:
         """Fast ~10s re-render without re-running earlier pipeline stages."""
         rendered = self.render_clip(
@@ -196,6 +199,7 @@ class FFmpegRenderer:
             audio_mode=audio_mode,
             facecam_pos=facecam_pos,
             bgm_path=bgm_path,
+            cutscene_intervals=cutscene_intervals,
         )
         # Update thumbnail alongside re-rendered clip
         thumb_path = Path(output_mp4).with_suffix(".thumb.jpg")

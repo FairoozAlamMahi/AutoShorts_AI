@@ -133,6 +133,10 @@ class PreRunToggles(BaseModel):
         default=False,
         description="Auto-assign layouts and themes based on detected scene type (Action -> Layout B, Comedy/Dialogue -> 4:3 Blur Fit)"
     )
+    smart_cutscene_framing: bool = Field(
+        default=True,
+        description="Dynamically switches zoomed-in crop to 4:3 during cinematic cutscenes to preserve framing, instantly snapping back during gameplay"
+    )
     per_clip_rules: Optional[str] = Field(
         default=None,
         description="Per-clip customization rules, e.g. '1-2: LAYOUT_B_CENTER_CROP, 3-5: LAYOUT_4_3_BLUR_FIT' or '2B, 3A'"

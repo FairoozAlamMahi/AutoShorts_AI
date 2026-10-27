@@ -2,8 +2,11 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
+
+logger = logging.getLogger(__name__)
 import shutil
 import subprocess
 from pathlib import Path
@@ -485,6 +488,20 @@ class JobOrchestrator:
                         classic_chunks = PhraseChunker.chunk_classic(clip_transcript)
                         SidecarExporter.export_all(classic_chunks, clip_base)
 
+                # Adaptive Cutscene Framing:
+                cutscene_intervals = None
+                if eff_layout == LayoutMode.LAYOUT_B_CENTER_CROP and getattr(toggles, "smart_cutscene_framing", True):
+                    from ..analysis.cutscene_detector import CutsceneDetector
+                    try:
+                        cutscene_intervals = CutsceneDetector.detect_cutscene_intervals(
+                            video_path=source_file_path,
+                            start_sec=c.start_sec,
+                            duration_sec=c.duration_sec,
+                            vlm_provider=vlm_provider,
+                        )
+                    except Exception as ex:
+                        logger.warning(f"Cutscene detection skipped for clip {c.clip_index}: {ex}")
+
                 # Render final MP4 with effective per-clip styling
                 self.renderer.render_clip(
                     source_video=source_file_path,
@@ -497,6 +514,7 @@ class JobOrchestrator:
                     facecam_pos=toggles.facecam_pos,
                     bgm_path=eff_bgm,
                     bgm_volume_duck_db=toggles.bgm_volume_duck_db,
+                    cutscene_intervals=cutscene_intervals,
                 )
                 rendered_paths.append(output_mp4)
     
@@ -574,10 +592,30 @@ class JobOrchestrator:
         caption_font_size: int = 68,
         facecam_pos: FacecamPosition = FacecamPosition.TOP_LEFT,
         bgm_path: Optional[Path | str] = None,
+        smart_cutscene_framing: bool = True,
     ) -> Path:
         """Fast 10s single-clip re-render without re-running transcription or signal analysis."""
         duration = max(1.0, end_sec - start_sec)
         ass_path: Optional[Path] = None
+
+        cutscene_intervals = None
+        if layout_mode == LayoutMode.LAYOUT_B_CENTER_CROP and smart_cutscene_framing:
+            from ..analysis.cutscene_detector import CutsceneDetector
+            try:
+                vlm_prov = None
+                if hasattr(self, "model_registry") and self.model_registry:
+                    try:
+                        vlm_prov = self.model_registry.create_vlm_provider()
+                    except Exception:
+                        vlm_prov = None
+                cutscene_intervals = CutsceneDetector.detect_cutscene_intervals(
+                    video_path=source_video,
+                    start_sec=start_sec,
+                    duration_sec=duration,
+                    vlm_provider=vlm_prov,
+                )
+            except Exception as ex:
+                logger.warning(f"Cutscene detection skipped for re-render: {ex}")
 
         if transcript and captions_mode != CaptionMode.NONE:
             sliced_transcript = TranscriptEditor.slice_transcript_for_window(transcript, start_sec, end_sec)
@@ -613,6 +651,7 @@ class JobOrchestrator:
             ass_path=ass_path,
             facecam_pos=facecam_pos,
             bgm_path=bgm_path,
+            cutscene_intervals=cutscene_intervals,
         )
 
     def run_batch(

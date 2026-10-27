@@ -258,6 +258,7 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
 
             with gr.Row():
                 smart_dist_chk = gr.Checkbox(label="🧠 Smart Scene Customization (Auto-styles Action vs Comedy/Dialogue)", value=True)
+                smart_cutscene_chk = gr.Checkbox(label="🎬 Smart Cutscene 4:3 Framing (Adapts zoom to 4:3 during cinematics)", value=True)
                 per_clip_rules_box = gr.Textbox(
                     label="Per-Clip Customization (Optional, e.g. '2B, 3A' or '1-2: LAYOUT_B_CENTER_CROP, 3-5: LAYOUT_4_3_BLUR_FIT')",
                     placeholder="e.g. 2B, 3A or 1: LAYOUT_B, 2: LAYOUT_4_3_BLUR_FIT",
@@ -293,6 +294,7 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
         use_meta: bool,
         use_loudnorm: bool,
         smart_dist: bool,
+        smart_cutscene: bool,
         per_clip_rules_str: str,
         progress=gr.Progress(),
     ) -> Tuple[str, List[str]]:
@@ -323,6 +325,7 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
             min_duration_sec=float(min_dur),
             max_duration_sec=float(max_dur),
             smart_layout_distribution=smart_dist,
+            smart_cutscene_framing=smart_cutscene,
             per_clip_rules=per_clip_rules_str.strip() if per_clip_rules_str and per_clip_rules_str.strip() else None,
         )
 
@@ -384,7 +387,7 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
             layout_mode, facecam_pos, caption_mode, caption_theme, caption_font_size,
             bgm_track_dropdown, bgm_duck_slider,
             use_whisper_chk, use_vlm_chk, use_metadata_chk, use_loudnorm_chk,
-            smart_dist_chk, per_clip_rules_box,
+            smart_dist_chk, smart_cutscene_chk, per_clip_rules_box,
         ],
         outputs=[job_status_box, output_clips_list],
     )

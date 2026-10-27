@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Tuple
 from ..config.schema import LayoutMode, FacecamPosition
 
 
@@ -36,10 +36,12 @@ class LayoutBuilder:
         ass_path: Optional[Path | str] = None,
         fonts_dir: Optional[Path | str] = None,
         facecam_pos: FacecamPosition = FacecamPosition.TOP_LEFT,
+        cutscene_intervals: Optional[List[Tuple[float, float]]] = None,
     ) -> str:
         """
         Generates the complete -filter_complex string.
         Output label is always [vout].
+        Supports dynamic cutscene framing adaptation when cutscene_intervals is passed.
         """
         filters = []
 
@@ -66,10 +68,32 @@ class LayoutBuilder:
             filters.append("[bg][fg]overlay=(W-w)/2:(H-h)/2[v_comp]")
 
         elif layout_mode == LayoutMode.LAYOUT_B_CENTER_CROP:
-            # Full-screen 9:16 vertical crop
-            filters.append(
-                "[0:v]crop=ih*9/16:ih:(iw-ow)/2:0,scale=1080:1920:flags=lanczos[v_comp]"
-            )
+            if cutscene_intervals:
+                # Dynamic cutscene adaptation:
+                # 1. Background: Blurred, 12% darkened 1080x1920
+                filters.append(
+                    "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=28:2,eq=brightness=-0.12[bg]"
+                )
+                # 2. Cutscene foreground 4:3 fit scaled to 1080x1440
+                filters.append(
+                    "[0:v]crop=ih*4/3:ih:(iw-ow)/2:0,scale=1080:1440:flags=lanczos[fg]"
+                )
+                # 3. Cutscene composite: 4:3 centered over blurred background
+                filters.append("[bg][fg]overlay=(W-w)/2:(H-h)/2[c43]")
+
+                # 4. Standard 9:16 center crop zoom
+                filters.append(
+                    "[0:v]crop=ih*9/16:ih:(iw-ow)/2:0,scale=1080:1920:flags=lanczos[zoom]"
+                )
+
+                # 5. Dynamic overlay: c43 enabled only during cutscene intervals; reverts instantly to zoom during gameplay
+                enable_cond = "+".join(f"between(t,{start:.2f},{end:.2f})" for start, end in cutscene_intervals)
+                filters.append(f"[zoom][c43]overlay=0:0:enable='{enable_cond}'[v_comp]")
+            else:
+                # Full-screen 9:16 vertical crop
+                filters.append(
+                    "[0:v]crop=ih*9/16:ih:(iw-ow)/2:0,scale=1080:1920:flags=lanczos[v_comp]"
+                )
 
         elif layout_mode == LayoutMode.LAYOUT_RAW_16_9:
             # Standard horizontal 16:9 trim (1920x1080)
