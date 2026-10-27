@@ -7,12 +7,14 @@ from __future__ import annotations
 import json
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Tuple, TYPE_CHECKING
 
 from .quota_guard import QuotaGuard
 from .channel_playbook import ChannelPlaybook
 from .youtube_uploader import YouTubeUploader
-from ..agent_toolkit import AgentToolkit
+
+if TYPE_CHECKING:
+    from ..agent_toolkit import AgentToolkit
 
 
 DEFAULT_AUTOPILOT_CONFIG: Dict[str, Any] = {
@@ -51,7 +53,11 @@ class AutonomousDaemon:
             quota_path=data_dir / "daily_upload_quota.json",
             max_daily_uploads=self.config.get("max_daily_shorts", 4),
         )
-        self.toolkit = toolkit or AgentToolkit(project_root=self.root)
+        if toolkit is not None:
+            self.toolkit = toolkit
+        else:
+            from ..agent_toolkit import AgentToolkit
+            self.toolkit = AgentToolkit(project_root=self.root)
         self.playbook = self.toolkit.playbook
         self.uploader = self.toolkit.uploader
         self.processed_sources = self._load_processed_sources()
