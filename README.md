@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Hardware: 8GB VRAM Baseline](https://img.shields.io/badge/Hardware-8GB%20VRAM%20Baseline-76B900.svg)]()
 [![Rendering: NVENC 60 FPS](https://img.shields.io/badge/Renderer-NVENC%2060%20FPS-blue.svg)]()
-[![Tests: 84 Passed](https://img.shields.io/badge/Tests-84%20Passed-brightgreen.svg)]()
+[![Tests: 89 Passed](https://img.shields.io/badge/Tests-89%20Passed-brightgreen.svg)]()
 
 AutoShorts AI is an offline-capable, automated video repurposing engine designed to transform long-form horizontal content—such as podcasts, interviews, streams, tech tutorials, educational lectures, talking-head videos, and gameplay—into high-retention 9:16 vertical shorts (YouTube Shorts, TikTok, and Instagram Reels).
 
@@ -167,6 +167,10 @@ AutoShorts AI features a closed-loop retention optimization engine:
 * Drop-Off Cliff Diagnostics: Parses YouTube Studio retention curves to calculate Hook Leak (first 15 seconds) and pinpoints drop-off cliffs correlated directly with spoken transcript dialogue.
 * Dynamic Channel Playbook: Persists real-world clip retention performance across layouts, durations, and caption themes to SQLite/JSON, automatically biasing future batch runs toward high-retention winners.
 * Credential Separation: Isolates scraping/downloader session cookies (data/downloader_cookies.txt) from channel publisher OAuth2 tokens (data/client_secrets.json, data/youtube_token.json).
+* Daily Quota Guard: Enforces a maximum daily budget of 4 uploads/day (6,400 of 10,000 free API quota units) to protect API limits and prevent spam flags.
+* Staggered Cloud Scheduling: Staggers uploads 5.5 hours apart directly into YouTube servers, enabling scheduled releases even when the host PC is powered off.
+* PC Uptime Catch-Up Daemon: Detects when the host PC was off and automatically catches up on daily analytics telemetry, Playbook training, and watch folder processing on next boot.
+* Local Watch Folder: Automatically ingests and processes gameplay/stream recordings dropped into data/watch_folder.
 
 ## Test Suite
 

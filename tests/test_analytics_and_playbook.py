@@ -174,11 +174,24 @@ def test_youtube_uploader_telemetry_query(tmp_path: Path):
     assert not unauth["success"]
     assert "not authenticated" in unauth["error"].lower()
 
-    # With mock token
+    # With mock token and mocked Google API client
     (tmp_path / "token.json").write_text(json.dumps({"account": "test@domain.com"}))
-    auth_res = uploader.fetch_channel_shorts_analytics()
-    assert auth_res["success"]
-    assert "shorts" in auth_res
+    with patch("googleapiclient.discovery.build") as mock_build:
+        mock_service = MagicMock()
+        mock_build.return_value = mock_service
+        mock_service.channels().list().execute.return_value = {
+            "items": [{"contentDetails": {"relatedPlaylists": {"uploads": "UU123"}}, "statistics": {"viewCount": "500"}}]
+        }
+        mock_service.playlistItems().list().execute.return_value = {
+            "items": [{"contentDetails": {"videoId": "v123"}}]
+        }
+        mock_service.videos().list().execute.return_value = {
+            "items": [{"id": "v123", "snippet": {"title": "Test Short"}, "statistics": {"viewCount": "100"}}]
+        }
+        with patch("google.oauth2.credentials.Credentials.from_authorized_user_info"):
+            auth_res = uploader.fetch_channel_shorts_analytics()
+            assert auth_res["success"]
+            assert len(auth_res["shorts"]) == 1
 
 
 def test_ass_compiler_with_hook_overlay(tmp_path: Path):
