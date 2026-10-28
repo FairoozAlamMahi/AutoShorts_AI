@@ -108,7 +108,7 @@ class PreRunToggles(BaseModel):
         return data
     discovery_mode: DiscoveryMode = Field(default=DiscoveryMode.FULL_AUTO)
     captions_mode: CaptionMode = Field(default=CaptionMode.BURNED_IN_ANIMATED)
-    layout_mode: LayoutMode = Field(default=LayoutMode.LAYOUT_HYBRID_CINEMA_STACK)
+    layout_mode: LayoutMode = Field(default=LayoutMode.LAYOUT_A_BLUR_FIT)
     metadata_mode: MetadataMode = Field(default=MetadataMode.LOCAL_VLM)
     audio_process_mode: AudioProcessMode = Field(default=AudioProcessMode.LOUDNORM_EBU_R128)
 
@@ -129,9 +129,18 @@ class PreRunToggles(BaseModel):
     bgm_track: Optional[Union[str, Any]] = Field(default=None, description="Path or preset for background music (auto-ducks on speech)")
     bgm_volume_duck_db: float = Field(default=-18.0, description="Music attenuation during speech in dB")
 
+    voiceover_enabled: bool = Field(default=False, description="Enable local neural voiceover synthesis for hooks / narration")
+    voice_persona: str = Field(default="DRAMATIC_TRAILER_BASS", description="Voice persona for local neural TTS")
+    edit_template_id: Optional[str] = Field(default=None, description="Viral edit template (e.g. aura_brazilian_phonk, velocity_rage_trap)")
+    script_style: Optional[str] = Field(default=None, description="HOOK_ONLY or FULL_NARRATIVE")
+    impact_flash_enabled: bool = Field(default=True, description="2-frame white strobe flash on beat drop or peak action")
+    autopilot_mode: str = Field(default="REVIEW", description="Autopilot mode: 'HANDS_FREE' or 'REVIEW'")
+    publish_youtube: bool = Field(default=True, description="Publish short to YouTube Shorts")
+    publish_instagram: bool = Field(default=False, description="Publish short to Instagram Reels")
+
     smart_layout_distribution: bool = Field(
-        default=False,
-        description="Auto-assign layouts and themes based on detected scene type (Action -> Layout B, Comedy/Dialogue -> 4:3 Blur Fit)"
+        default=True,
+        description="Auto-assign layouts and themes based on detected scene type (Action -> 16:9 Blur Fit, Clutch/Parry/Dialogue -> 4:3 Blur Fit)"
     )
     smart_cutscene_framing: bool = Field(
         default=True,

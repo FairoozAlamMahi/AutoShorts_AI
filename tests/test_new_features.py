@@ -363,7 +363,7 @@ def test_multimodal_scene_classifier():
     )
     res_action = MultimodalSceneClassifier.classify(c_action, tr_action)
     assert res_action.category == SceneCategory.ACTION
-    assert res_action.recommended_layout == LayoutMode.LAYOUT_B_CENTER_CROP
+    assert res_action.recommended_layout == LayoutMode.LAYOUT_A_BLUR_FIT
     assert res_action.recommended_caption_theme == CaptionTheme.MRBEAST_YELLOW
 
 

@@ -148,3 +148,22 @@ class CutsceneDetector:
                     intervals.append((round(int_start, 2), round(int_end, 2)))
 
             return intervals
+
+    @classmethod
+    def detect_cutscenes(
+        cls,
+        video_path: Path | str,
+        start_sec: float,
+        duration_sec: float,
+        vlm_provider: Optional[VLMProvider] = None,
+        sample_fps: float = 1.0,
+    ) -> List[Tuple[float, float]]:
+        """Alias for detect_cutscene_intervals."""
+        return cls.detect_cutscene_intervals(
+            video_path=video_path,
+            start_sec=start_sec,
+            duration_sec=duration_sec,
+            vlm_provider=vlm_provider,
+            sample_fps=sample_fps,
+        )
+

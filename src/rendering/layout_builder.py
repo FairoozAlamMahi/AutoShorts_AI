@@ -37,6 +37,7 @@ class LayoutBuilder:
         fonts_dir: Optional[Path | str] = None,
         facecam_pos: FacecamPosition = FacecamPosition.TOP_LEFT,
         cutscene_intervals: Optional[List[Tuple[float, float]]] = None,
+        hook_zoom_punch: bool = False,
     ) -> str:
         """
         Generates the complete -filter_complex string.
@@ -136,15 +137,20 @@ class LayoutBuilder:
         else:
             raise ValueError(f"Unknown layout mode: {layout_mode}")
 
+        v_in_comp = "[v_comp]"
+        if hook_zoom_punch:
+            filters.append(f"[v_comp]crop='if(lte(t,2.5),1080-140*(1-t/2.5),1080)':'if(lte(t,2.5),1920-250*(1-t/2.5),1920)',scale=1080:1920[v_comp_zoom]")
+            v_in_comp = "[v_comp_zoom]"
+
         # Subtitle burning via libass
         if ass_path and Path(ass_path).exists():
             clean_ass = cls.escape_filter_path(ass_path)
             if fonts_dir and Path(fonts_dir).exists():
                 clean_fonts = cls.escape_filter_path(fonts_dir)
-                filters.append(f"[v_comp]ass='{clean_ass}':fontsdir='{clean_fonts}'[vout]")
+                filters.append(f"{v_in_comp}ass='{clean_ass}':fontsdir='{clean_fonts}'[vout]")
             else:
-                filters.append(f"[v_comp]ass='{clean_ass}'[vout]")
+                filters.append(f"{v_in_comp}ass='{clean_ass}'[vout]")
         else:
-            filters.append("[v_comp]null[vout]")
+            filters.append(f"{v_in_comp}null[vout]")
 
         return ";".join(filters)

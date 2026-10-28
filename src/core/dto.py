@@ -93,6 +93,11 @@ class CandidateClipDTO(BaseModel):
     custom_caption_theme: Optional[str] = None
     custom_caption_font_size: Optional[int] = None
     custom_bgm_track: Optional[str] = None
+    voice_audio_path: Optional[str] = None
+    spoken_script: Optional[str] = None
+    voice_persona: Optional[str] = None
+    edit_template_id: Optional[str] = None
+    impact_flash: bool = False
     transcript_snippet: str = ""
     keyframe_paths: List[str] = Field(default_factory=list)
 

@@ -251,6 +251,19 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
                 )
 
             with gr.Row():
+                edit_template_dropdown = gr.Dropdown(
+                    choices=["None", "aura_brazilian_phonk", "velocity_rage_trap", "cinematic_lore_ambient", "combat_parry_sync"],
+                    value="None",
+                    label="Viral Edit Template Recipe",
+                )
+                voiceover_chk = gr.Checkbox(label="Local Neural Voiceover (Kokoro CUDA)", value=False)
+                voice_persona_dropdown = gr.Dropdown(
+                    choices=["DRAMATIC_TRAILER_BASS", "TIKTOK_HYPE_HOOK", "CALM_LORE_STORYTELLER", "BRITISH_DOCUMENTARY", "FEMALE_INTENSE"],
+                    value="DRAMATIC_TRAILER_BASS",
+                    label="Voice Persona",
+                )
+
+            with gr.Row():
                 use_whisper_chk = gr.Checkbox(label="Use Speech Transcription (Whisper)", value=True)
                 use_vlm_chk = gr.Checkbox(label="Use VLM Clutch Verification", value=True)
                 use_metadata_chk = gr.Checkbox(label="Generate Title & Description", value=True)
@@ -296,6 +309,9 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
         smart_dist: bool,
         smart_cutscene: bool,
         per_clip_rules_str: str,
+        edit_tmpl: str,
+        use_voice: bool,
+        voice_persona_choice: str,
         progress=gr.Progress(),
     ) -> Tuple[str, List[str]]:
         lines = [line.strip() for line in src.strip().splitlines() if line.strip()]
@@ -304,6 +320,8 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
 
         manual_ranges = parse_manual_timestamps(manual_ts_str)
         bgm_path = None if bgm_choice in ("None", "", None) else str(bgm_choice)
+
+        chosen_tmpl = None if edit_tmpl in ("None", "", None) else edit_tmpl
 
         toggles = PreRunToggles(
             discovery_mode=DiscoveryMode(disc_mode),
@@ -327,6 +345,9 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
             smart_layout_distribution=smart_dist,
             smart_cutscene_framing=smart_cutscene,
             per_clip_rules=per_clip_rules_str.strip() if per_clip_rules_str and per_clip_rules_str.strip() else None,
+            edit_template_id=chosen_tmpl,
+            voiceover_enabled=use_voice,
+            voice_persona=voice_persona_choice,
         )
 
         if len(lines) == 1:
@@ -388,6 +409,7 @@ def create_run_tab(orchestrator: JobOrchestrator) -> None:
             bgm_track_dropdown, bgm_duck_slider,
             use_whisper_chk, use_vlm_chk, use_metadata_chk, use_loudnorm_chk,
             smart_dist_chk, smart_cutscene_chk, per_clip_rules_box,
+            edit_template_dropdown, voiceover_chk, voice_persona_dropdown,
         ],
         outputs=[job_status_box, output_clips_list],
     )

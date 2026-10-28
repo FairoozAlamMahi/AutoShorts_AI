@@ -21,6 +21,9 @@ from src.ui.dashboard import create_run_tab
 from src.ui.review_drawer import create_review_tab
 from src.ui.model_manager_tab import create_model_manager_tab
 from src.ui.analytics_tab import create_analytics_tab
+from src.ui.autopilot_tab import create_autopilot_tab
+from src.ui.war_room_tab import create_war_room_tab
+from src.core.autopilot_v2 import AutopilotV2
 
 
 def build_app(
@@ -35,24 +38,31 @@ def build_app(
     """Builds and wires the complete multi-tab Gradio UI."""
     u = uploader or YouTubeUploader()
     p = playbook or ChannelPlaybook()
+    auto = AutopilotV2(db=db, resource_guard=resource_guard, model_registry=model_registry)
 
     with gr.Blocks(title="ShortsFactory Local") as demo:
-        gr.Markdown("# 🎬 ShortsFactory Local — AI Gaming Highlights & Shorts Generator")
+        gr.Markdown("# ShortsFactory Local - AI Gaming Highlights & Viral Shorts Generator")
 
         with gr.Tabs():
-            with gr.Tab("🚀 Run & Queue"):
+            with gr.Tab("⚡ Viral Edits & Autopilot Hub"):
+                create_autopilot_tab(orchestrator, auto)
+
+            with gr.Tab("🎯 YouTube Agent War Room"):
+                create_war_room_tab()
+
+            with gr.Tab("Run & Queue"):
                 create_run_tab(orchestrator)
 
-            with gr.Tab("🎞️ Review & Fast Fix-Up"):
+            with gr.Tab("Review & Fast Fix-Up"):
                 create_review_tab(orchestrator, db)
 
-            with gr.Tab("📈 Analytics & Channel Playbook"):
+            with gr.Tab("Analytics & Channel Playbook"):
                 create_analytics_tab(orchestrator, db, u, p)
 
-            with gr.Tab("🤖 AI Models & Providers"):
+            with gr.Tab("AI Models & Providers"):
                 create_model_manager_tab(model_registry, resource_guard)
 
-            with gr.Tab("⚙️ Presets & Settings"):
+            with gr.Tab("Presets & Settings"):
                 gr.Markdown("### Workflow Presets")
                 presets = config_mgr.list_presets()
                 preset_names = [p.name for p in presets]

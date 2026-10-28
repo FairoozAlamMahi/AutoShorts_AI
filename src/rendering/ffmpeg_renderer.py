@@ -47,10 +47,17 @@ class FFmpegRenderer:
         bgm_path: Optional[Path | str] = None,
         bgm_volume_duck_db: float = -18.0,
         cutscene_intervals: Optional[List[Tuple[float, float]]] = None,
+        voice_path: Optional[Path | str] = None,
+        impact_flash: bool = False,
+        flash_timestamp_sec: Optional[float] = None,
+        pre_drop_silence_sec: float = 0.0,
+        drop_timestamp_sec: Optional[float] = None,
+        hook_zoom_punch: bool = False,
+        sfx_path: Optional[Path | str] = None,
     ) -> Path:
         """
         Renders a single Short with layout framing, optional .ass subtitle burn-in,
-        optional background music auto-ducking, and audio normalization.
+        optional neural voiceover, hard studio ducking, impact flash, dynamic hook zoom, and audio normalization.
         Attempts NVENC first, automatically falling back to libx264.
         """
         src = Path(source_video).resolve()
@@ -67,18 +74,129 @@ class FFmpegRenderer:
             fonts_dir=self.fonts_dir if self.fonts_dir.exists() else None,
             facecam_pos=facecam_pos,
             cutscene_intervals=cutscene_intervals,
+            hook_zoom_punch=hook_zoom_punch,
         )
 
-        has_bgm = bgm_path is not None and Path(bgm_path).exists()
-        duck_vol = "0.20" if bgm_volume_duck_db <= -14.0 else "0.35"
+        # Impact flash (2-frame white strobe on beat drop or clutch hit)
+        if impact_flash:
+            flash_t = flash_timestamp_sec if flash_timestamp_sec is not None else (drop_timestamp_sec if drop_timestamp_sec is not None else 2.5)
+            flash_t = max(0.1, min(flash_t, duration_sec - 0.2))
+            filtergraph = f"{filtergraph};[vout]drawbox=x=0:y=0:w=1080:h=1920:color=white@0.85:t=fill:enable='between(t,{flash_t:.3f},{flash_t + 0.05:.3f})'[vout_flash]"
+            final_video_label = "[vout_flash]"
+        else:
+            final_video_label = "[vout]"
 
-        if has_bgm and has_audio:
-            if audio_mode == AudioProcessMode.LOUDNORM_EBU_R128:
-                combined_filter = f"{filtergraph};[1:a]volume={duck_vol}[bgm_duck];[0:a:0?][bgm_duck]amix=inputs=2:duration=first,loudnorm=I=-14:LRA=7:TP=-1.5[aout]"
-            else:
-                combined_filter = f"{filtergraph};[1:a]volume={duck_vol}[bgm_duck];[0:a:0?][bgm_duck]amix=inputs=2:duration=first[aout]"
-        elif has_bgm and not has_audio:
-            combined_filter = f"{filtergraph};[1:a]volume=0.35[aout]"
+        has_bgm = bgm_path is not None and Path(bgm_path).exists()
+        has_voice = voice_path is not None and Path(voice_path).exists()
+        has_sfx = sfx_path is not None and Path(sfx_path).exists()
+
+        extra_inputs: List[str] = []
+        current_idx = 1
+        bgm_idx = None
+        voice_idx = None
+        sfx_idx = None
+
+        if has_bgm:
+            extra_inputs.extend(["-stream_loop", "-1", "-i", str(Path(bgm_path).resolve())])
+            bgm_idx = current_idx
+            current_idx += 1
+
+        if has_voice:
+            extra_inputs.extend(["-i", str(Path(voice_path).resolve())])
+            voice_idx = current_idx
+            current_idx += 1
+
+        if has_sfx:
+            extra_inputs.extend(["-i", str(Path(sfx_path).resolve())])
+            sfx_idx = current_idx
+            current_idx += 1
+
+        # Detect voiceover duration for precise hard studio ducking
+        vo_dur = 0.0
+        if has_voice:
+            try:
+                import wave
+                with wave.open(str(Path(voice_path).resolve()), "rb") as wf:
+                    frames = wf.getnframes()
+                    rate = wf.getframerate()
+                    vo_dur = frames / float(rate) if rate > 0 else 3.5
+            except Exception:
+                vo_dur = 3.5
+
+        # Construct hard studio ducking audio mixing graph
+        audio_filters: List[str] = []
+        has_aout = False
+
+        if has_bgm or has_voice or has_sfx:
+            mix_inputs: List[str] = []
+
+            # 1. Game audio ducking
+            if has_audio:
+                if has_voice and vo_dur > 0.1:
+                    # Slashing game volume to 6% during voiceover hook, restoring to 65% when hook finishes
+                    audio_filters.append(f"[0:a:0?]volume='if(lte(t,{vo_dur:.2f}),0.06,0.65)':eval=frame[game_aud]")
+                elif has_bgm:
+                    audio_filters.append(f"[0:a:0?]volume=0.60[game_aud]")
+                else:
+                    audio_filters.append(f"[0:a:0?]volume=1.0[game_aud]")
+                mix_inputs.append("[game_aud]")
+
+            # 2. Background music dynamic ducking & pre-drop silence
+            if has_bgm and bgm_idx is not None:
+                drop_ts = drop_timestamp_sec if drop_timestamp_sec is not None else (vo_dur if vo_dur > 0.1 else 2.5)
+                if pre_drop_silence_sec > 0.0 and drop_ts > 0.3:
+                    sil_start = max(0.0, drop_ts - pre_drop_silence_sec)
+                    sil_end = drop_ts
+                    if has_voice and vo_dur > 0.1:
+                        # Ducked to 8% during VO, 0 during pre-drop gap, 100% full volume on drop
+                        bgm_filter = (
+                            f"[{bgm_idx}:a]volume='if(between(t,{sil_start:.3f},{sil_end:.3f}),0,"
+                            f"if(lte(t,{vo_dur:.2f}),0.08,if(gte(t,{drop_ts:.3f}),1.0,0.20)))':eval=frame[bgm_aud]"
+                        )
+                    else:
+                        bgm_filter = (
+                            f"[{bgm_idx}:a]volume='if(between(t,{sil_start:.3f},{sil_end:.3f}),0,"
+                            f"if(gte(t,{drop_ts:.3f}),1.0,0.30))':eval=frame[bgm_aud]"
+                        )
+                else:
+                    if has_voice and vo_dur > 0.1:
+                        bgm_filter = f"[{bgm_idx}:a]volume='if(lte(t,{vo_dur:.2f}),0.08,0.75)':eval=frame[bgm_aud]"
+                    else:
+                        bgm_filter = f"[{bgm_idx}:a]volume=0.45[bgm_aud]"
+                audio_filters.append(bgm_filter)
+                mix_inputs.append("[bgm_aud]")
+
+            # 3. Voice track with broadcast clarity EQ and +4.3 dB boost
+            if has_voice and voice_idx is not None:
+                audio_filters.append(f"[{voice_idx}:a]highpass=f=100,equalizer=f=3500:t=q:w=1.2:g=3.5,volume=1.65[vox_aud]")
+                mix_inputs.append("[vox_aud]")
+
+            # 4. Cinematic SFX (Sub-bass boom on the beat drop)
+            if has_sfx and sfx_idx is not None:
+                drop_ts = drop_timestamp_sec if drop_timestamp_sec is not None else (vo_dur if vo_dur > 0.1 else 2.5)
+                delay_ms = int(max(0.0, drop_ts) * 1000)
+                audio_filters.append(f"[{sfx_idx}:a]adelay={delay_ms}|{delay_ms},volume=1.25[sfx_aud]")
+                mix_inputs.append("[sfx_aud]")
+
+            # 5. Master mixing with normalize=0 to preserve hard ducking dynamics
+            if len(mix_inputs) > 1:
+                mix_chain = f"{''.join(mix_inputs)}amix=inputs={len(mix_inputs)}:duration=first:dropout_transition=0:normalize=0"
+                if audio_mode == AudioProcessMode.LOUDNORM_EBU_R128:
+                    mix_chain += ",loudnorm=I=-14:LRA=7:TP=-1.5"
+                audio_filters.append(f"{mix_chain}[aout]")
+                has_aout = True
+            elif len(mix_inputs) == 1:
+                single_chain = mix_inputs[0]
+                filter_ops = []
+                if audio_mode == AudioProcessMode.LOUDNORM_EBU_R128:
+                    filter_ops.append("loudnorm=I=-14:LRA=7:TP=-1.5")
+                else:
+                    filter_ops.append("anull")
+                audio_filters.append(f"{single_chain}{','.join(filter_ops)}[aout]")
+                has_aout = True
+
+        if audio_filters:
+            combined_filter = f"{filtergraph};{';'.join(audio_filters)}"
         else:
             combined_filter = filtergraph
 
@@ -90,21 +208,16 @@ class FFmpegRenderer:
                 "-t", f"{duration_sec:.3f}",
                 "-i", str(src),
             ]
-
-            if has_bgm:
-                cmd.extend(["-stream_loop", "-1", "-i", str(Path(bgm_path).resolve())])
-
-            # Video filter
+            cmd.extend(extra_inputs)
             cmd.extend([
                 "-filter_complex", combined_filter,
-                "-map", "[vout]",
+                "-map", final_video_label,
             ])
 
-            # Audio routing & auto-ducking
-            if has_bgm:
+            if has_aout:
                 cmd.extend(["-map", "[aout]", "-c:a", "aac", "-b:a", "192k"])
             else:
-                if has_audio:
+                if has_audio and not extra_inputs:
                     cmd.extend(["-map", "0:a:0?"])
                     if audio_mode == AudioProcessMode.LOUDNORM_EBU_R128:
                         cmd.extend(["-af", "loudnorm=I=-14:LRA=7:TP=-1.5", "-c:a", "aac", "-b:a", "192k"])
@@ -247,6 +360,13 @@ class FFmpegRenderer:
         facecam_pos: FacecamPosition = FacecamPosition.TOP_LEFT,
         bgm_path: Optional[Path | str] = None,
         cutscene_intervals: Optional[List[Tuple[float, float]]] = None,
+        voice_path: Optional[Path | str] = None,
+        impact_flash: bool = False,
+        flash_timestamp_sec: Optional[float] = None,
+        pre_drop_silence_sec: float = 0.0,
+        drop_timestamp_sec: Optional[float] = None,
+        hook_zoom_punch: bool = False,
+        sfx_path: Optional[Path | str] = None,
     ) -> Path:
         """Fast ~10s re-render without re-running earlier pipeline stages."""
         rendered = self.render_clip(
@@ -260,6 +380,13 @@ class FFmpegRenderer:
             facecam_pos=facecam_pos,
             bgm_path=bgm_path,
             cutscene_intervals=cutscene_intervals,
+            voice_path=voice_path,
+            impact_flash=impact_flash,
+            flash_timestamp_sec=flash_timestamp_sec,
+            pre_drop_silence_sec=pre_drop_silence_sec,
+            drop_timestamp_sec=drop_timestamp_sec,
+            hook_zoom_punch=hook_zoom_punch,
+            sfx_path=sfx_path,
         )
         # Update thumbnail alongside re-rendered clip
         thumb_path = Path(output_mp4).with_suffix(".thumb.jpg")

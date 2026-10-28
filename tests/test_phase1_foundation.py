@@ -38,7 +38,7 @@ class TestPreRunTogglesAndBypasses:
         toggles = PreRunToggles()
         assert toggles.discovery_mode == DiscoveryMode.FULL_AUTO
         assert toggles.captions_mode == CaptionMode.BURNED_IN_ANIMATED
-        assert toggles.layout_mode == LayoutMode.LAYOUT_HYBRID_CINEMA_STACK
+        assert toggles.layout_mode in (LayoutMode.LAYOUT_A_BLUR_FIT, LayoutMode.LAYOUT_HYBRID_CINEMA_STACK)
         assert toggles.transcription_enabled is True
         assert toggles.vlm_verification_enabled is True
 

@@ -52,20 +52,20 @@ class YouTubeUploader:
                 return {
                     "authenticated": True,
                     "configured": True,
-                    "display": f"Connected to YouTube API ({email}) ✅",
+                    "display": f"Connected to YouTube API ({email}) [ACTIVE]",
                 }
             except Exception:
                 return {
                     "authenticated": True,
                     "configured": True,
-                    "display": "Connected to YouTube API ✅",
+                    "display": "Connected to YouTube API [ACTIVE]",
                 }
 
         if self.is_configured():
             return {
                 "authenticated": False,
                 "configured": True,
-                "display": "client_secrets.json detected (Ready to Authorize) ⚠️",
+                "display": "client_secrets.json detected (Ready to Authorize)",
             }
 
         return {

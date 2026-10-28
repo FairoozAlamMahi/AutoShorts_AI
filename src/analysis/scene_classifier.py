@@ -147,7 +147,7 @@ class MultimodalSceneClassifier:
                 category=category,
                 confidence=confidence,
                 reason=reason,
-                recommended_layout=LayoutMode.LAYOUT_4_3_BLUR_FIT,  # Show 100% full screen so jokes/fails aren't cropped
+                recommended_layout=LayoutMode.LAYOUT_4_3_BLUR_FIT,  # 4:3 framing so comedy/fails aren't cropped
                 recommended_caption_theme=CaptionTheme.TIKTOK_RED_BOX,
                 recommended_caption_font_size=68,
                 recommended_bgm="assets/music/ambient_lofi.mp3",
@@ -157,7 +157,7 @@ class MultimodalSceneClassifier:
                 category=category,
                 confidence=confidence,
                 reason=reason,
-                recommended_layout=LayoutMode.LAYOUT_HYBRID_CINEMA_STACK,
+                recommended_layout=LayoutMode.LAYOUT_4_3_BLUR_FIT,  # 4:3 high-impact focus for close combat & parries
                 recommended_caption_theme=CaptionTheme.NEON_CYBER_GREEN,
                 recommended_caption_font_size=72,
                 recommended_bgm="assets/music/action_pulse.mp3",
@@ -167,7 +167,7 @@ class MultimodalSceneClassifier:
                 category=category,
                 confidence=confidence,
                 reason=reason,
-                recommended_layout=LayoutMode.LAYOUT_4_3_BLUR_FIT,
+                recommended_layout=LayoutMode.LAYOUT_4_3_BLUR_FIT,  # 4:3 balanced framing for dialogues & cutscenes
                 recommended_caption_theme=CaptionTheme.CLEAN_WHITE,
                 recommended_caption_font_size=64,
                 recommended_bgm="assets/music/ambient_lofi.mp3",
@@ -177,7 +177,7 @@ class MultimodalSceneClassifier:
                 category=category,
                 confidence=confidence,
                 reason=reason,
-                recommended_layout=LayoutMode.LAYOUT_B_CENTER_CROP,  # Tight, high-impact vertical crop
+                recommended_layout=LayoutMode.LAYOUT_A_BLUR_FIT,  # 100% Full landscape view for wide arena & boss battles
                 recommended_caption_theme=CaptionTheme.MRBEAST_YELLOW,
                 recommended_caption_font_size=72,
                 recommended_bgm="assets/music/action_pulse.mp3",

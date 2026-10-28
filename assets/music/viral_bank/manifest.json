@@ -1,0 +1,60 @@
+{
+  "version": "2.0",
+  "tracks": [
+    {
+      "track_id": "procedural_phonk_pulse",
+      "title": "Procedural Viral Phonk Pulse",
+      "mood": "BRAZILIAN_PHONK",
+      "file_path": "C:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\shorts_factory\\assets\\music\\viral_bank\\procedural_phonk_pulse.wav",
+      "duration_sec": 35.0,
+      "bpm": 129.2,
+      "suggested_drop_sec": 4.18,
+      "source_url": null,
+      "creator": "Local Audio Engine"
+    },
+    {
+      "track_id": "viral_phonk_popular_mix",
+      "title": "TOP 10 BEST POPULAR PHONK MUSIC \ud83d\udd25 | NON COPYRIGHT PHONK MIX | Free To Use 2026",
+      "mood": "BRAZILIAN_PHONK",
+      "file_path": "C:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\shorts_factory\\assets\\music\\viral_bank\\viral_phonk_popular_mix.mp3",
+      "duration_sec": 45.0,
+      "bpm": 99.4,
+      "suggested_drop_sec": 2.35,
+      "source_url": "https://www.youtube.com/watch?v=m7UJ8VrzkWY",
+      "creator": "Unique Phonk "
+    },
+    {
+      "track_id": "viral_phonk_dark_fantasy",
+      "title": "Aggressive Dark Fantasy Phonk No Copyright  Shadow Dragon King Theme",
+      "mood": "DARK_FANTASY",
+      "file_path": "C:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\shorts_factory\\assets\\music\\viral_bank\\viral_phonk_dark_fantasy.mp3",
+      "duration_sec": 45.0,
+      "bpm": 143.6,
+      "suggested_drop_sec": 4.83,
+      "source_url": "https://www.youtube.com/watch?v=B426-mD7aK4",
+      "creator": "VibeMatrix Sounds"
+    },
+    {
+      "track_id": "viral_phonk_montagem_drift",
+      "title": "MONTAGEM RUGADA FHONK #  (      )",
+      "mood": "DRIFT_PHONK",
+      "file_path": "C:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\shorts_factory\\assets\\music\\viral_bank\\viral_phonk_montagem_drift.mp3",
+      "duration_sec": 45.0,
+      "bpm": 117.5,
+      "suggested_drop_sec": 3.39,
+      "source_url": "https://www.youtube.com/watch?v=-6KJarI-dUU",
+      "creator": "NCF Music"
+    },
+    {
+      "track_id": "viral_phonk_dark_gym_drift",
+      "title": "Dark Gym Phonk 2026  Aggressive Drift Beats  Workout Music   [No Copyright]",
+      "mood": "BRAZILIAN_PHONK",
+      "file_path": "C:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\shorts_factory\\assets\\music\\viral_bank\\viral_phonk_dark_gym_drift.mp3",
+      "duration_sec": 45.0,
+      "bpm": 129.2,
+      "suggested_drop_sec": 3.25,
+      "source_url": "https://www.youtube.com/watch?v=5SjKnccMYvo",
+      "creator": "Heartbreak Aura"
+    }
+  ]
+}

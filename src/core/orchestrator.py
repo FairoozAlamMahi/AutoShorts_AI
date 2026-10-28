@@ -36,7 +36,6 @@ from ..config.schema import (
 )
 from ..providers.registry import ModelRegistry
 from ..ingest.media_inspector import MediaInspector
-from ..ingest.youtube_fetcher import YouTubeFetcher
 from ..ingest.rights_manager import RightsManager
 from ..transcription.service import TranscriptionService
 from ..transcription.editor import TranscriptEditor
@@ -74,6 +73,7 @@ class JobOrchestrator:
         self.scratch_dir = Path(scratch_dir).resolve()
         self.export_dir = Path(export_dir).resolve()
         self.inspector = MediaInspector()
+        from ..ingest.youtube_fetcher import YouTubeFetcher
         self.yt_fetcher = YouTubeFetcher()
         self.renderer = ffmpeg_renderer or FFmpegRenderer()
         self.playbook = playbook or ChannelPlaybook(playbook_path=self.scratch_dir.parent / "channel_playbook.json")
@@ -441,6 +441,20 @@ class JobOrchestrator:
             job_export_dir.mkdir(parents=True, exist_ok=True)
             rendered_paths: List[Path] = []
 
+            from ..templates.template_manager import EditTemplateManager
+            from ..scripting.script_writer import ScriptWriterAgent
+            from ..voice.voice_agent import VoiceSynthesisAgent
+
+            template_mgr = EditTemplateManager()
+            active_template = template_mgr.get_template(toggles.edit_template_id) if toggles.edit_template_id else None
+
+            voice_agent: Optional[VoiceSynthesisAgent] = None
+            if toggles.voiceover_enabled or (active_template is not None and getattr(active_template, "recommended_persona", None)):
+                try:
+                    voice_agent = VoiceSynthesisAgent()
+                except Exception as ex:
+                    logger.warning(f"Voice agent initialization skipped: {ex}")
+
             for c in candidates:
                 clip_id = f"{job_id}_clip_{c.clip_index:02d}"
                 clip_base = job_export_dir / f"clip_{c.clip_index:02d}"
@@ -449,10 +463,48 @@ class JobOrchestrator:
                 clip_transcript = TranscriptEditor.slice_transcript_for_window(transcript, c.start_sec, c.end_sec)
                 has_words = clip_transcript.total_words > 0
 
-                eff_layout = LayoutMode(c.custom_layout or toggles.layout_mode.value)
-                eff_theme = CaptionTheme(c.custom_caption_theme or toggles.caption_theme.value)
-                eff_font_size = int(c.custom_caption_font_size or toggles.caption_font_size)
-                eff_bgm = c.custom_bgm_track if c.custom_bgm_track is not None else toggles.bgm_track
+                template_framing = active_template.framing_mode if active_template else None
+                eff_layout = LayoutMode(c.custom_layout or template_framing or toggles.layout_mode.value)
+                template_theme = active_template.caption_theme if active_template else None
+                eff_theme = CaptionTheme(c.custom_caption_theme or template_theme or toggles.caption_theme.value)
+                template_font = active_template.caption_font_size if active_template else None
+                eff_font_size = int(c.custom_caption_font_size or template_font or toggles.caption_font_size)
+
+                # BGM resolution: clip-level > template > pre-run toggle
+                template_bgm = active_template.bgm_file if active_template else None
+                eff_bgm = c.custom_bgm_track if c.custom_bgm_track is not None else (template_bgm or toggles.bgm_track)
+
+                # Neural voiceover & script synthesis
+                voice_wav_path: Optional[Path] = None
+                if toggles.voiceover_enabled or (active_template is not None):
+                    try:
+                        v_res = vlm_results.get(c.clip_index)
+                        script_pkg = ScriptWriterAgent.generate_script(
+                            clip=c,
+                            game_title=toggles.game_name_context,
+                            vlm_analysis=v_res,
+                            transcript=clip_transcript,
+                            force_style=toggles.script_style,
+                        )
+                        c.spoken_script = script_pkg.spoken_text
+                        c.hook_overlay_text = script_pkg.hook_overlay_text
+                        c.voice_persona = script_pkg.recommended_persona or toggles.voice_persona
+
+                        if voice_agent is not None:
+                            target_voice_wav = self.scratch_dir / job_id / f"clip_{c.clip_index}_voice.wav"
+                            voice_wav_path, _ = voice_agent.synthesize_hook(
+                                hook_text=script_pkg.spoken_text,
+                                output_path=target_voice_wav,
+                                persona=c.voice_persona,
+                            )
+                            c.voice_audio_path = str(voice_wav_path)
+
+                        # Update metadata with generated title and engagement question if not present
+                        if c.clip_index in metadata_map:
+                            if script_pkg.primary_title and not metadata_map[c.clip_index].primary_title.endswith("#Shorts"):
+                                metadata_map[c.clip_index].primary_title = script_pkg.primary_title
+                    except Exception as ex:
+                        logger.warning(f"Voice / script generation failed for clip {c.clip_index}: {ex}")
 
                 ass_path: Optional[Path] = None
                 has_overlay = bool(c.hook_overlay_text and c.hook_overlay_text.strip())
@@ -502,6 +554,12 @@ class JobOrchestrator:
                     except Exception as ex:
                         logger.warning(f"Cutscene detection skipped for clip {c.clip_index}: {ex}")
 
+                # Visual flash & pre-drop silence parameters
+                impact_flash = toggles.impact_flash_enabled
+                drop_sec = active_template.beat_drop_sec if active_template else 2.5
+                pre_drop_sil = active_template.pre_drop_silence_sec if active_template else 0.0
+                bgm_duck = active_template.voice_duck_db if active_template else toggles.bgm_volume_duck_db
+
                 # Render final MP4 with effective per-clip styling
                 self.renderer.render_clip(
                     source_video=source_file_path,
@@ -513,8 +571,13 @@ class JobOrchestrator:
                     audio_mode=toggles.audio_process_mode,
                     facecam_pos=toggles.facecam_pos,
                     bgm_path=eff_bgm,
-                    bgm_volume_duck_db=toggles.bgm_volume_duck_db,
+                    bgm_volume_duck_db=bgm_duck,
                     cutscene_intervals=cutscene_intervals,
+                    voice_path=voice_wav_path,
+                    impact_flash=impact_flash,
+                    flash_timestamp_sec=drop_sec,
+                    pre_drop_silence_sec=pre_drop_sil,
+                    drop_timestamp_sec=drop_sec,
                 )
                 rendered_paths.append(output_mp4)
     
