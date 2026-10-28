@@ -7,9 +7,14 @@ import shutil
 import subprocess
 from pathlib import Path
 from typing import Optional, Dict, Any, List
+import logging
 from .layout_builder import LayoutBuilder
+from .thumbnail_maker import thumbnail_maker, BadgeStyle
+from ..audio.music_transition_engine import music_transition_engine
 from ..config.schema import LayoutMode, AudioProcessMode, FacecamPosition
 from ..ingest.media_inspector import MediaInspector
+
+logger = logging.getLogger("FFmpegRenderer")
 
 
 class FFmpegRenderer:
@@ -128,55 +133,26 @@ class FFmpegRenderer:
         has_aout = False
 
         if has_bgm or has_voice or has_sfx:
-            mix_inputs: List[str] = []
+            drop_ts = drop_timestamp_sec if drop_timestamp_sec is not None else (vo_dur if vo_dur > 0.1 else 2.5)
+            game_label = "[0:a:0?]"
 
-            # 1. Game audio ducking
-            if has_audio:
-                if has_voice and vo_dur > 0.1:
-                    # Slashing game volume to 6% during voiceover hook, restoring to 65% when hook finishes
-                    audio_filters.append(f"[0:a:0?]volume='if(lte(t,{vo_dur:.2f}),0.06,0.65)':eval=frame[game_aud]")
-                elif has_bgm:
-                    audio_filters.append(f"[0:a:0?]volume=0.60[game_aud]")
-                else:
-                    audio_filters.append(f"[0:a:0?]volume=1.0[game_aud]")
-                mix_inputs.append("[game_aud]")
-
-            # 2. Background music dynamic ducking & pre-drop silence
-            if has_bgm and bgm_idx is not None:
-                drop_ts = drop_timestamp_sec if drop_timestamp_sec is not None else (vo_dur if vo_dur > 0.1 else 2.5)
-                if pre_drop_silence_sec > 0.0 and drop_ts > 0.3:
-                    sil_start = max(0.0, drop_ts - pre_drop_silence_sec)
-                    sil_end = drop_ts
-                    if has_voice and vo_dur > 0.1:
-                        # Ducked to 8% during VO, 0 during pre-drop gap, 100% full volume on drop
-                        bgm_filter = (
-                            f"[{bgm_idx}:a]volume='if(between(t,{sil_start:.3f},{sil_end:.3f}),0,"
-                            f"if(lte(t,{vo_dur:.2f}),0.08,if(gte(t,{drop_ts:.3f}),1.0,0.20)))':eval=frame[bgm_aud]"
-                        )
-                    else:
-                        bgm_filter = (
-                            f"[{bgm_idx}:a]volume='if(between(t,{sil_start:.3f},{sil_end:.3f}),0,"
-                            f"if(gte(t,{drop_ts:.3f}),1.0,0.30))':eval=frame[bgm_aud]"
-                        )
-                else:
-                    if has_voice and vo_dur > 0.1:
-                        bgm_filter = f"[{bgm_idx}:a]volume='if(lte(t,{vo_dur:.2f}),0.08,0.75)':eval=frame[bgm_aud]"
-                    else:
-                        bgm_filter = f"[{bgm_idx}:a]volume=0.45[bgm_aud]"
-                audio_filters.append(bgm_filter)
-                mix_inputs.append("[bgm_aud]")
-
-            # 3. Voice track with broadcast clarity EQ and +4.3 dB boost
-            if has_voice and voice_idx is not None:
-                audio_filters.append(f"[{voice_idx}:a]highpass=f=100,equalizer=f=3500:t=q:w=1.2:g=3.5,volume=1.65[vox_aud]")
-                mix_inputs.append("[vox_aud]")
-
-            # 4. Cinematic SFX (Sub-bass boom on the beat drop)
-            if has_sfx and sfx_idx is not None:
-                drop_ts = drop_timestamp_sec if drop_timestamp_sec is not None else (vo_dur if vo_dur > 0.1 else 2.5)
-                delay_ms = int(max(0.0, drop_ts) * 1000)
-                audio_filters.append(f"[{sfx_idx}:a]adelay={delay_ms}|{delay_ms},volume=1.25[sfx_aud]")
-                mix_inputs.append("[sfx_aud]")
+            filt_lines, sfx_inputs, mix_inputs = music_transition_engine.build_transition_audio_filtergraph(
+                has_game_audio=has_audio,
+                game_audio_label=game_label,
+                bgm_input_index=bgm_idx if has_bgm else None,
+                voice_input_index=voice_idx if has_voice else None,
+                vo_duration_sec=vo_dur,
+                drop_timestamp_sec=drop_ts,
+                pre_drop_silence_sec=pre_drop_silence_sec,
+                enable_lowpass_buildup=True,
+                enable_riser_buildup=True,
+                enable_dual_impact=True,
+                next_input_index=current_idx,
+            )
+            for sfx_p in sfx_inputs:
+                extra_inputs.extend(["-i", str(sfx_p)])
+                current_idx += 1
+            audio_filters.extend(filt_lines)
 
             # 5. Master mixing with normalize=0 to preserve hard ducking dynamics
             if len(mix_inputs) > 1:
@@ -295,13 +271,17 @@ class FFmpegRenderer:
         output_dir: Optional[Path | str] = None,
         duration_sec: Optional[float] = None,
         hook_overlay_text: Optional[str] = None,
+        source_video: Optional[Path | str] = None,
+        start_sec: float = 0.0,
+        badge_style: BadgeStyle = BadgeStyle.MRBEAST_YELLOW,
     ) -> Dict[str, Path]:
         """
         Generates 3 multi-candidate cover thumbnails (thumb_A, thumb_B, thumb_C) for A/B testing:
-        - thumb_A.jpg: 15% timestamp (Hook opener)
-        - thumb_B.jpg: 50% timestamp (Climax / action peak)
-        - thumb_C.jpg: 85% timestamp (Reaction / payoff moment)
-        Logs candidate styling and metadata in <clip_stem>.thumbnails.json.
+        - thumb_A.jpg: High-contrast 3-word viral badge (MrBeast Yellow / Cyan / Red)
+        - thumb_B.jpg: Curiosity / stakes callout badge
+        - thumb_C.jpg: Clean AMOLED graded action freeze-frame (no text)
+        - thumb.jpg: Primary thumbnail (defaults to Variant A)
+        - <clip_stem>.thumbnails.json: Candidate metadata sidecar.
         """
         v = Path(video_path).resolve()
         parent_dir = Path(output_dir).resolve() if output_dir else v.parent
@@ -315,6 +295,24 @@ class FFmpegRenderer:
                 dur = info.duration_sec
             except Exception:
                 dur = 30.0
+
+        # When hook_overlay_text is provided, use the high-CTR viral packaging suite
+        if hook_overlay_text:
+            try:
+                # Prefer source video if available for clean non-subtitled frames
+                clean_src = Path(source_video).resolve() if source_video and Path(source_video).exists() else v
+                clean_start = start_sec if (source_video and Path(source_video).exists()) else 0.0
+                return thumbnail_maker.generate_packaging_suite(
+                    source_video=clean_src,
+                    output_dir=parent_dir,
+                    clip_id=stem,
+                    start_sec=clean_start,
+                    duration_sec=dur,
+                    hook_overlay_text=hook_overlay_text,
+                    style=badge_style,
+                )
+            except Exception as e:
+                logger.warning(f"Thumbnail packaging suite error: {e}")
 
         ts_a = max(0.5, dur * 0.15)
         ts_b = max(1.0, dur * 0.50)
@@ -345,6 +343,7 @@ class FFmpegRenderer:
             "hook_text": hook_overlay_text or "",
         }
         meta_p.write_text(json.dumps(meta_data, indent=2), encoding="utf-8")
+        return {"A": p_a, "B": p_b, "C": p_c, "main": p_main}
 
         return {"A": p_a, "B": p_b, "C": p_c, "main": p_main}
 

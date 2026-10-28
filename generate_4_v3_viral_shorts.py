@@ -16,6 +16,7 @@ import time
 from pathlib import Path
 
 from shorts_factory.src.rendering.ffmpeg_renderer import FFmpegRenderer, LayoutMode, AudioProcessMode
+from shorts_factory.src.rendering.thumbnail_maker import BadgeStyle
 from shorts_factory.src.editing.action_assembler import ActionAssembler, ActionBeat, AssemblyMode
 from shorts_factory.src.audio.viral_audio_bank import viral_audio_bank
 from shorts_factory.src.audio.sfx_generator import sfx_engine
@@ -91,7 +92,8 @@ def run_v3_generation():
                 "This is the cleanest deflect combo against Hua Qianxiao on the bridge in PBZ!",
             ],
             "title_proposal": "Cleanest Deflect Combo on Bridge Boss in PBZ",
-            "thumb_overlay": "PERFECT DEFLECT...",
+            "thumb_overlay": "PERFECT DEFLECT",
+            "badge_style": BadgeStyle.CYBER_CYAN,
             "track_id": "viral_phonk_dark_fantasy",
             "mode": "SINGLE_CLIMAX",
         },
@@ -113,7 +115,8 @@ def run_v3_generation():
                 "This is the cleanest combat sequence against The Lion Dance Grandmaster in PBZ!",
             ],
             "title_proposal": "How to Beat The Lion Dance Grandmaster in PBZ",
-            "thumb_overlay": "DODGE CANCEL...",
+            "thumb_overlay": "DODGE CANCEL",
+            "badge_style": BadgeStyle.NEON_RED,
             "track_id": "viral_phonk_dark_gym_drift",
             "mode": "SINGLE_CLIMAX",
         },
@@ -135,7 +138,8 @@ def run_v3_generation():
                 "Watch what happens when you cruise the Vice City highway with a chopper overhead in GTA 6!",
             ],
             "title_proposal": "Cruising the Highway at Sunset in GTA 6",
-            "thumb_overlay": "PURE CINEMA...",
+            "thumb_overlay": "PURE CINEMA",
+            "badge_style": BadgeStyle.MRBEAST_YELLOW,
             "track_id": "viral_phonk_montagem_drift",
             "mode": "SINGLE_CLIMAX",
         },
@@ -157,7 +161,8 @@ def run_v3_generation():
                 "Stop playing GTA until you see how intense the new robbery mechanics are in GTA 6!",
             ],
             "title_proposal": "Full Store Robbery and Getaway in GTA 6",
-            "thumb_overlay": "INSANE AI...",
+            "thumb_overlay": "INSANE AI",
+            "badge_style": BadgeStyle.FLOATING_IMPACT,
             "track_id": "viral_phonk_popular_mix",
             "mode": "SINGLE_CLIMAX",
         },
@@ -241,12 +246,16 @@ def run_v3_generation():
 
         logger.info(f"Rendered in {time.time() - t_rend:.2f}s -> {out_mp4.name} ({out_mp4.stat().st_size / (1024*1024):.2f} MB)")
 
-        # 7. Multi-Candidate Thumbnails (thumb_A, B, C)
+        # 7. Multi-Candidate High-CTR Thumbnails via yt-package skill
+        badge_style = cfg.get("badge_style", BadgeStyle.MRBEAST_YELLOW)
         renderer.generate_multi_thumbnails(
             out_mp4,
             output_dir=EXPORT_DIR,
             duration_sec=cfg["duration_sec"],
             hook_overlay_text=cfg["thumb_overlay"],
+            source_video=cfg["source"],
+            start_sec=cfg["start_sec"],
+            badge_style=badge_style,
         )
 
         # 8. Stage for Instant Web Review and Root Access

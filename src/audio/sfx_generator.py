@@ -149,6 +149,13 @@ class CinematicSFXEngine:
         wavfile.write(str(p), sr, data_int16)
         return p
 
+    def get_sfx(self, name: str) -> Path:
+        """Returns the path to a specific SFX file by name."""
+        paths = self.get_sfx_paths()
+        if name in paths:
+            return paths[name]
+        return self.sfx_dir / f"{name}.wav"
+
     def get_sfx_paths(self) -> Dict[str, Path]:
         """Returns map of ready-to-use SFX files."""
         return {
