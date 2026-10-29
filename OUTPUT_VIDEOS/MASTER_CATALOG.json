@@ -1,0 +1,814 @@
+{
+  "project_name": "Autonomous YouTube Shorts Generator",
+  "central_output_directory": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS",
+  "categories": {
+    "GTA_1": {
+      "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1",
+      "video_count": 12,
+      "videos": [
+        {
+          "filename": "clip_01.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\clip_01.mp4",
+          "size_bytes": 45712113,
+          "size_mb": 43.59,
+          "thumbnails": [
+            "clip_01.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_01.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_02.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\clip_02.mp4",
+          "size_bytes": 41825216,
+          "size_mb": 39.89,
+          "thumbnails": [
+            "clip_02.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_02.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_03.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\clip_03.mp4",
+          "size_bytes": 81863591,
+          "size_mb": 78.07,
+          "thumbnails": [
+            "clip_03.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_03.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_04.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\clip_04.mp4",
+          "size_bytes": 63356567,
+          "size_mb": 60.42,
+          "thumbnails": [
+            "clip_04.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_04.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_05.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\clip_05.mp4",
+          "size_bytes": 62054315,
+          "size_mb": 59.18,
+          "thumbnails": [
+            "clip_05.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_05.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_06.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\clip_06.mp4",
+          "size_bytes": 23235751,
+          "size_mb": 22.16,
+          "thumbnails": [
+            "clip_06.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_06.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_07.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\clip_07.mp4",
+          "size_bytes": 41884189,
+          "size_mb": 39.94,
+          "thumbnails": [
+            "clip_07.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_07.provenance.json"
+          ]
+        },
+        {
+          "filename": "gta_01_5star_getaway_hype.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\gta_01_5star_getaway_hype.mp4",
+          "size_bytes": 20689371,
+          "size_mb": 19.73,
+          "thumbnails": [
+            "gta_01_5star_getaway_hype.thumb.jpg",
+            "gta_01_5star_getaway_hype.thumb_A.jpg",
+            "gta_01_5star_getaway_hype.thumb_B.jpg",
+            "gta_01_5star_getaway_hype.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_01_5star_getaway_hype.meta.json",
+            "gta_01_5star_getaway_hype.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "gta_02_heist_trailer_bass.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\gta_02_heist_trailer_bass.mp4",
+          "size_bytes": 75577449,
+          "size_mb": 72.08,
+          "thumbnails": [
+            "gta_02_heist_trailer_bass.thumb.jpg",
+            "gta_02_heist_trailer_bass.thumb_A.jpg",
+            "gta_02_heist_trailer_bass.thumb_B.jpg",
+            "gta_02_heist_trailer_bass.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_02_heist_trailer_bass.meta.json",
+            "gta_02_heist_trailer_bass.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "gta_03_mega_ramp_stunt.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\gta_03_mega_ramp_stunt.mp4",
+          "size_bytes": 33691696,
+          "size_mb": 32.13,
+          "thumbnails": [
+            "gta_03_mega_ramp_stunt.thumb.jpg",
+            "gta_03_mega_ramp_stunt.thumb_A.jpg",
+            "gta_03_mega_ramp_stunt.thumb_B.jpg",
+            "gta_03_mega_ramp_stunt.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_03_mega_ramp_stunt.meta.json",
+            "gta_03_mega_ramp_stunt.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "gta_04_police_standoff_doc.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\gta_04_police_standoff_doc.mp4",
+          "size_bytes": 45212642,
+          "size_mb": 43.12,
+          "thumbnails": [
+            "gta_04_police_standoff_doc.thumb.jpg",
+            "gta_04_police_standoff_doc.thumb_A.jpg",
+            "gta_04_police_standoff_doc.thumb_B.jpg",
+            "gta_04_police_standoff_doc.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_04_police_standoff_doc.meta.json",
+            "gta_04_police_standoff_doc.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "gta_05_roadblock_drift_phonk.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 1\\gta_05_roadblock_drift_phonk.mp4",
+          "size_bytes": 30349996,
+          "size_mb": 28.94,
+          "thumbnails": [
+            "gta_05_roadblock_drift_phonk.thumb.jpg",
+            "gta_05_roadblock_drift_phonk.thumb_A.jpg",
+            "gta_05_roadblock_drift_phonk.thumb_B.jpg",
+            "gta_05_roadblock_drift_phonk.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_05_roadblock_drift_phonk.meta.json",
+            "gta_05_roadblock_drift_phonk.thumbnails.json"
+          ]
+        }
+      ]
+    },
+    "GTA_2": {
+      "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2",
+      "video_count": 12,
+      "videos": [
+        {
+          "filename": "clip_01.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\clip_01.mp4",
+          "size_bytes": 50156218,
+          "size_mb": 47.83,
+          "thumbnails": [
+            "clip_01.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_01.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_02.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\clip_02.mp4",
+          "size_bytes": 113540316,
+          "size_mb": 108.28,
+          "thumbnails": [
+            "clip_02.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_02.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_03.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\clip_03.mp4",
+          "size_bytes": 79705189,
+          "size_mb": 76.01,
+          "thumbnails": [
+            "clip_03.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_03.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_04.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\clip_04.mp4",
+          "size_bytes": 78581407,
+          "size_mb": 74.94,
+          "thumbnails": [
+            "clip_04.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_04.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_05.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\clip_05.mp4",
+          "size_bytes": 52968050,
+          "size_mb": 50.51,
+          "thumbnails": [
+            "clip_05.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_05.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_06.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\clip_06.mp4",
+          "size_bytes": 25431103,
+          "size_mb": 24.25,
+          "thumbnails": [
+            "clip_06.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_06.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_07.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\clip_07.mp4",
+          "size_bytes": 47347634,
+          "size_mb": 45.15,
+          "thumbnails": [
+            "clip_07.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_07.provenance.json"
+          ]
+        },
+        {
+          "filename": "gta_01_highway_sunset_cruise.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\gta_01_highway_sunset_cruise.mp4",
+          "size_bytes": 59805085,
+          "size_mb": 57.03,
+          "thumbnails": [
+            "gta_01_highway_sunset_cruise.thumb.jpg",
+            "gta_01_highway_sunset_cruise.thumb_A.jpg",
+            "gta_01_highway_sunset_cruise.thumb_B.jpg",
+            "gta_01_highway_sunset_cruise.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_01_highway_sunset_cruise.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "gta_01_supercar_street_drift.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\gta_01_supercar_street_drift.mp4",
+          "size_bytes": 46687897,
+          "size_mb": 44.53,
+          "thumbnails": [
+            "gta_01_supercar_street_drift.thumb.jpg"
+          ],
+          "sidecars": []
+        },
+        {
+          "filename": "gta_02_convenience_store_robbery.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\gta_02_convenience_store_robbery.mp4",
+          "size_bytes": 41380697,
+          "size_mb": 39.46,
+          "thumbnails": [
+            "gta_02_convenience_store_robbery.thumb.jpg",
+            "gta_02_convenience_store_robbery.thumb_A.jpg",
+            "gta_02_convenience_store_robbery.thumb_B.jpg",
+            "gta_02_convenience_store_robbery.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_02_convenience_store_robbery.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "gta_02_highway_police_escape.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\gta_02_highway_police_escape.mp4",
+          "size_bytes": 51190019,
+          "size_mb": 48.82,
+          "thumbnails": [
+            "gta_02_highway_police_escape.thumb.jpg"
+          ],
+          "sidecars": []
+        },
+        {
+          "filename": "gta_viral_v2_multicut.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 2\\gta_viral_v2_multicut.mp4",
+          "size_bytes": 21041800,
+          "size_mb": 20.07,
+          "thumbnails": [
+            "gta_viral_v2_multicut.thumb.jpg",
+            "gta_viral_v2_multicut.thumb_A.jpg",
+            "gta_viral_v2_multicut.thumb_B.jpg",
+            "gta_viral_v2_multicut.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "gta_viral_v2_multicut.thumbnails.json"
+          ]
+        }
+      ]
+    },
+    "GTA_3": {
+      "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 3",
+      "video_count": 4,
+      "videos": [
+        {
+          "filename": "clip_01.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 3\\clip_01.mp4",
+          "size_bytes": 66092292,
+          "size_mb": 63.03,
+          "thumbnails": [
+            "clip_01.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_01.meta.json",
+            "clip_01.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_02.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 3\\clip_02.mp4",
+          "size_bytes": 37218330,
+          "size_mb": 35.49,
+          "thumbnails": [
+            "clip_02.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_02.meta.json",
+            "clip_02.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_03.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 3\\clip_03.mp4",
+          "size_bytes": 52351760,
+          "size_mb": 49.93,
+          "thumbnails": [
+            "clip_03.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_03.meta.json",
+            "clip_03.provenance.json"
+          ]
+        },
+        {
+          "filename": "clip_04.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\GTA\\GTA 3\\clip_04.mp4",
+          "size_bytes": 16723231,
+          "size_mb": 15.95,
+          "thumbnails": [
+            "clip_04.thumb.jpg"
+          ],
+          "sidecars": [
+            "clip_04.meta.json",
+            "clip_04.provenance.json"
+          ]
+        }
+      ]
+    },
+    "PBZ_1": {
+      "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 1",
+      "video_count": 5,
+      "videos": [
+        {
+          "filename": "clip_01.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 1\\clip_01.mp4",
+          "size_bytes": 83729644,
+          "size_mb": 79.85,
+          "thumbnails": [
+            "clip_01.thumb.jpg",
+            "clip_01.thumb_A.jpg",
+            "clip_01.thumb_B.jpg",
+            "clip_01.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "clip_01.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "clip_02.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 1\\clip_02.mp4",
+          "size_bytes": 85280397,
+          "size_mb": 81.33,
+          "thumbnails": [
+            "clip_02.thumb.jpg",
+            "clip_02.thumb_A.jpg",
+            "clip_02.thumb_B.jpg",
+            "clip_02.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "clip_02.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "clip_03.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 1\\clip_03.mp4",
+          "size_bytes": 92831448,
+          "size_mb": 88.53,
+          "thumbnails": [
+            "clip_03.thumb.jpg",
+            "clip_03.thumb_A.jpg",
+            "clip_03.thumb_B.jpg",
+            "clip_03.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "clip_03.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "clip_04.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 1\\clip_04.mp4",
+          "size_bytes": 84731463,
+          "size_mb": 80.81,
+          "thumbnails": [
+            "clip_04.thumb.jpg",
+            "clip_04.thumb_A.jpg",
+            "clip_04.thumb_B.jpg",
+            "clip_04.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "clip_04.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "clip_05.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 1\\clip_05.mp4",
+          "size_bytes": 83818312,
+          "size_mb": 79.94,
+          "thumbnails": [
+            "clip_05.thumb.jpg",
+            "clip_05.thumb_A.jpg",
+            "clip_05.thumb_B.jpg",
+            "clip_05.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "clip_05.thumbnails.json"
+          ]
+        }
+      ]
+    },
+    "PBZ_2": {
+      "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2",
+      "video_count": 9,
+      "videos": [
+        {
+          "filename": "pbz_01_bridge_boss_duel.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_01_bridge_boss_duel.mp4",
+          "size_bytes": 98445485,
+          "size_mb": 93.88,
+          "thumbnails": [
+            "pbz_01_bridge_boss_duel.thumb.jpg",
+            "pbz_01_bridge_boss_duel.thumb_A.jpg",
+            "pbz_01_bridge_boss_duel.thumb_B.jpg",
+            "pbz_01_bridge_boss_duel.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_01_bridge_boss_duel.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_01_tiger_boss_phonk.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_01_tiger_boss_phonk.mp4",
+          "size_bytes": 81546051,
+          "size_mb": 77.77,
+          "thumbnails": [
+            "pbz_01_tiger_boss_phonk.thumb.jpg",
+            "pbz_01_tiger_boss_phonk.thumb_A.jpg",
+            "pbz_01_tiger_boss_phonk.thumb_B.jpg",
+            "pbz_01_tiger_boss_phonk.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_01_tiger_boss_phonk.meta.json",
+            "pbz_01_tiger_boss_phonk.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_02_fire_samurai_climax.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_02_fire_samurai_climax.mp4",
+          "size_bytes": 74247281,
+          "size_mb": 70.81,
+          "thumbnails": [],
+          "sidecars": []
+        },
+        {
+          "filename": "pbz_02_lion_dance_climax.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_02_lion_dance_climax.mp4",
+          "size_bytes": 74257106,
+          "size_mb": 70.82,
+          "thumbnails": [
+            "pbz_02_lion_dance_climax.thumb.jpg",
+            "pbz_02_lion_dance_climax.thumb_A.jpg",
+            "pbz_02_lion_dance_climax.thumb_B.jpg",
+            "pbz_02_lion_dance_climax.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_02_lion_dance_climax.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_02_parry_clutch_sync.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_02_parry_clutch_sync.mp4",
+          "size_bytes": 88930287,
+          "size_mb": 84.81,
+          "thumbnails": [
+            "pbz_02_parry_clutch_sync.thumb.jpg",
+            "pbz_02_parry_clutch_sync.thumb_A.jpg",
+            "pbz_02_parry_clutch_sync.thumb_B.jpg",
+            "pbz_02_parry_clutch_sync.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_02_parry_clutch_sync.meta.json",
+            "pbz_02_parry_clutch_sync.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_03_clean_combo_velocity.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_03_clean_combo_velocity.mp4",
+          "size_bytes": 83810310,
+          "size_mb": 79.93,
+          "thumbnails": [
+            "pbz_03_clean_combo_velocity.thumb.jpg",
+            "pbz_03_clean_combo_velocity.thumb_A.jpg",
+            "pbz_03_clean_combo_velocity.thumb_B.jpg",
+            "pbz_03_clean_combo_velocity.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_03_clean_combo_velocity.meta.json",
+            "pbz_03_clean_combo_velocity.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_04_cursed_warrior_lore.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_04_cursed_warrior_lore.mp4",
+          "size_bytes": 86139964,
+          "size_mb": 82.15,
+          "thumbnails": [
+            "pbz_04_cursed_warrior_lore.thumb.jpg",
+            "pbz_04_cursed_warrior_lore.thumb_A.jpg",
+            "pbz_04_cursed_warrior_lore.thumb_B.jpg",
+            "pbz_04_cursed_warrior_lore.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_04_cursed_warrior_lore.meta.json",
+            "pbz_04_cursed_warrior_lore.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_05_timing_breakdown_doc.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_05_timing_breakdown_doc.mp4",
+          "size_bytes": 74364776,
+          "size_mb": 70.92,
+          "thumbnails": [
+            "pbz_05_timing_breakdown_doc.thumb.jpg",
+            "pbz_05_timing_breakdown_doc.thumb_A.jpg",
+            "pbz_05_timing_breakdown_doc.thumb_B.jpg",
+            "pbz_05_timing_breakdown_doc.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_05_timing_breakdown_doc.meta.json",
+            "pbz_05_timing_breakdown_doc.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_viral_v2_climax.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 2\\pbz_viral_v2_climax.mp4",
+          "size_bytes": 86126623,
+          "size_mb": 82.14,
+          "thumbnails": [
+            "pbz_viral_v2_climax.thumb.jpg",
+            "pbz_viral_v2_climax.thumb_A.jpg",
+            "pbz_viral_v2_climax.thumb_B.jpg",
+            "pbz_viral_v2_climax.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_viral_v2_climax.thumbnails.json"
+          ]
+        }
+      ]
+    },
+    "PBZ_3": {
+      "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3",
+      "video_count": 7,
+      "videos": [
+        {
+          "filename": "pbz_01_hopeless_fraud.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3\\pbz_01_hopeless_fraud.mp4",
+          "size_bytes": 10304573,
+          "size_mb": 9.83,
+          "thumbnails": [
+            "pbz_01_hopeless_fraud.thumb.jpg",
+            "pbz_01_hopeless_fraud.thumb_A.jpg",
+            "pbz_01_hopeless_fraud.thumb_B.jpg",
+            "pbz_01_hopeless_fraud.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_01_hopeless_fraud.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_02_thick_headed_fools.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3\\pbz_02_thick_headed_fools.mp4",
+          "size_bytes": 55946413,
+          "size_mb": 53.35,
+          "thumbnails": [
+            "pbz_02_thick_headed_fools.thumb.jpg",
+            "pbz_02_thick_headed_fools.thumb_A.jpg",
+            "pbz_02_thick_headed_fools.thumb_B.jpg",
+            "pbz_02_thick_headed_fools.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_02_thick_headed_fools.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_03_drooling_puppets.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3\\pbz_03_drooling_puppets.mp4",
+          "size_bytes": 66363729,
+          "size_mb": 63.29,
+          "thumbnails": [
+            "pbz_03_drooling_puppets.thumb.jpg",
+            "pbz_03_drooling_puppets.thumb_A.jpg",
+            "pbz_03_drooling_puppets.thumb_B.jpg",
+            "pbz_03_drooling_puppets.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_03_drooling_puppets.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_04_bridge_deflect_master.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3\\pbz_04_bridge_deflect_master.mp4",
+          "size_bytes": 83956508,
+          "size_mb": 80.07,
+          "thumbnails": [
+            "pbz_04_bridge_deflect_master.thumb.jpg",
+            "pbz_04_bridge_deflect_master.thumb_A.jpg",
+            "pbz_04_bridge_deflect_master.thumb_B.jpg",
+            "pbz_04_bridge_deflect_master.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_04_bridge_deflect_master.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_05_finishing_execution.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3\\pbz_05_finishing_execution.mp4",
+          "size_bytes": 43135625,
+          "size_mb": 41.14,
+          "thumbnails": [
+            "pbz_05_finishing_execution.thumb.jpg",
+            "pbz_05_finishing_execution.thumb_A.jpg",
+            "pbz_05_finishing_execution.thumb_B.jpg",
+            "pbz_05_finishing_execution.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_05_finishing_execution.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_06_chained_executioner.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3\\pbz_06_chained_executioner.mp4",
+          "size_bytes": 61126583,
+          "size_mb": 58.29,
+          "thumbnails": [
+            "pbz_06_chained_executioner.thumb.jpg",
+            "pbz_06_chained_executioner.thumb_A.jpg",
+            "pbz_06_chained_executioner.thumb_B.jpg",
+            "pbz_06_chained_executioner.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_06_chained_executioner.thumbnails.json"
+          ]
+        },
+        {
+          "filename": "pbz_07_shadow_blood_counter.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Phantom Blade 0\\Phantom Blade 3\\pbz_07_shadow_blood_counter.mp4",
+          "size_bytes": 72816838,
+          "size_mb": 69.44,
+          "thumbnails": [
+            "pbz_07_shadow_blood_counter.thumb.jpg",
+            "pbz_07_shadow_blood_counter.thumb_A.jpg",
+            "pbz_07_shadow_blood_counter.thumb_B.jpg",
+            "pbz_07_shadow_blood_counter.thumb_C.jpg"
+          ],
+          "sidecars": [
+            "pbz_07_shadow_blood_counter.thumbnails.json"
+          ]
+        }
+      ]
+    },
+    "ASTRO_1": {
+      "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1",
+      "video_count": 8,
+      "videos": [
+        {
+          "filename": "batch1_clip_01.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch1_clip_01.mp4",
+          "size_bytes": 68109878,
+          "size_mb": 64.95,
+          "thumbnails": [],
+          "sidecars": [
+            "batch1_clip_01.meta.json",
+            "batch1_clip_01.provenance.json"
+          ]
+        },
+        {
+          "filename": "batch1_clip_02.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch1_clip_02.mp4",
+          "size_bytes": 100229350,
+          "size_mb": 95.59,
+          "thumbnails": [],
+          "sidecars": [
+            "batch1_clip_02.meta.json",
+            "batch1_clip_02.provenance.json"
+          ]
+        },
+        {
+          "filename": "batch1_clip_03.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch1_clip_03.mp4",
+          "size_bytes": 97575704,
+          "size_mb": 93.06,
+          "thumbnails": [],
+          "sidecars": [
+            "batch1_clip_03.meta.json",
+            "batch1_clip_03.provenance.json"
+          ]
+        },
+        {
+          "filename": "batch1_clip_04.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch1_clip_04.mp4",
+          "size_bytes": 102812515,
+          "size_mb": 98.05,
+          "thumbnails": [],
+          "sidecars": [
+            "batch1_clip_04.meta.json",
+            "batch1_clip_04.provenance.json"
+          ]
+        },
+        {
+          "filename": "batch1_clip_05.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch1_clip_05.mp4",
+          "size_bytes": 107874340,
+          "size_mb": 102.88,
+          "thumbnails": [],
+          "sidecars": [
+            "batch1_clip_05.meta.json",
+            "batch1_clip_05.provenance.json"
+          ]
+        },
+        {
+          "filename": "batch2_clip_01.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch2_clip_01.mp4",
+          "size_bytes": 61280626,
+          "size_mb": 58.44,
+          "thumbnails": [],
+          "sidecars": [
+            "batch2_clip_01.meta.json",
+            "batch2_clip_01.provenance.json"
+          ]
+        },
+        {
+          "filename": "batch2_clip_02.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch2_clip_02.mp4",
+          "size_bytes": 58603047,
+          "size_mb": 55.89,
+          "thumbnails": [],
+          "sidecars": [
+            "batch2_clip_02.meta.json",
+            "batch2_clip_02.provenance.json"
+          ]
+        },
+        {
+          "filename": "batch2_clip_03.mp4",
+          "path": "c:\\Users\\faalv\\Desktop\\Personal project\\yt_shorts_generator\\OUTPUT_VIDEOS\\Astro Bot\\Astro Bot 1\\batch2_clip_03.mp4",
+          "size_bytes": 57824674,
+          "size_mb": 55.15,
+          "thumbnails": [],
+          "sidecars": [
+            "batch2_clip_03.meta.json",
+            "batch2_clip_03.provenance.json"
+          ]
+        }
+      ]
+    }
+  }
+}
