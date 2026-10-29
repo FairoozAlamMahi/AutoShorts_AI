@@ -11,12 +11,14 @@ from ..core.database import DatabaseManager
 from ..config.schema import CaptionMode, LayoutMode, CaptionTheme, FacecamPosition
 from ..core.dto import TranscriptDTO, TranscriptSegmentDTO, TranscriptWordDTO
 from ..core.youtube_uploader import YouTubeUploader
+from ..publishing import MultiPlatformPublisher
 
 
 def create_review_tab(orchestrator: JobOrchestrator, db: DatabaseManager) -> None:
     """Builds the Review, Fast Fix-Up, and Direct YouTube Upload tab."""
-    gr.Markdown("### Review Generated Shorts, Fast 10-Second Fix-Up & Direct YouTube Upload")
+    gr.Markdown("### Review Generated Shorts, Fast 10-Second Fix-Up & Multi-Platform Publishing")
     uploader = YouTubeUploader()
+    publisher = MultiPlatformPublisher()
 
     initial_clips = sorted(
         list(orchestrator.export_dir.glob("**/*.mp4")),
@@ -143,17 +145,30 @@ def create_review_tab(orchestrator: JobOrchestrator, db: DatabaseManager) -> Non
                     privacy_dropdown = gr.Dropdown(
                         choices=["private", "unlisted", "public"],
                         value="private",
-                        label="Privacy Status",
+                        label="Privacy Status (YouTube/TikTok)",
                         interactive=True,
                     )
                     publish_at_box = gr.Textbox(
                         label="Scheduled Time (ISO 8601 UTC, e.g. 2026-10-30T15:00:00Z)",
-                        placeholder="Optional: schedule future publish for private shorts",
+                        placeholder="Optional: schedule future publish",
                         interactive=True,
                     )
 
-                upload_btn = gr.Button("🚀 Upload Short to YouTube", variant="primary")
-                upload_status_box = gr.Textbox(label="Upload Result & YouTube Link", interactive=False, lines=2)
+                with gr.Row():
+                    platforms_checkbox = gr.CheckboxGroup(
+                        choices=["YouTube", "Instagram", "Facebook", "TikTok"],
+                        value=["YouTube", "Instagram", "Facebook", "TikTok"],
+                        label="Destination Platforms",
+                        scale=3,
+                    )
+                    dry_run_checkbox = gr.Checkbox(
+                        label="Dry-Run Mode (Validation Only)",
+                        value=False,
+                        scale=1,
+                    )
+
+                upload_btn = gr.Button("Broadcast Video to Selected Platforms", variant="primary")
+                upload_status_box = gr.Textbox(label="Publishing Receipt & Platform Links", interactive=False, lines=4)
 
     def _on_clip_select(clip_path_str: str) -> Dict[Any, Any]:
         if not clip_path_str or not Path(clip_path_str).exists():
@@ -293,6 +308,8 @@ def create_review_tab(orchestrator: JobOrchestrator, db: DatabaseManager) -> Non
         tags_str: str,
         privacy: str,
         publish_at: str,
+        selected_platforms: List[str],
+        is_dry_run: bool,
     ) -> str:
         if not clip_path_str or not Path(clip_path_str).exists():
             return "Error: No valid clip selected to upload."
@@ -301,16 +318,24 @@ def create_review_tab(orchestrator: JobOrchestrator, db: DatabaseManager) -> Non
 
         tag_list = [t.strip() for t in tags_str.split(",") if t.strip()]
         publish_iso = publish_at.strip() if publish_at.strip() else None
+        target_plats = [p.lower().replace(" shorts", "").replace(" reels", "").strip() for p in (selected_platforms or ["youtube"])]
 
-        result = uploader.upload_short(
+        receipt = publisher.publish_video(
             video_path=clip_path_str,
             title=title,
             description=desc,
             tags=tag_list,
-            privacy_status=privacy,
-            publish_at_iso=publish_iso,
+            platforms=target_plats,
+            base_scheduled_time_iso=publish_iso,
+            dry_run=is_dry_run,
         )
-        return result.get("message", "Upload process concluded.")
+
+        lines = [f"Dispatched to {receipt['total_dispatched']} platforms ({receipt['total_success']} successful/staged):"]
+        for p, r in receipt["platforms"].items():
+            st = "SUCCESS" if r.get("success") else "FAILED"
+            u = r.get("url", r.get("message", "N/A"))
+            lines.append(f"• {p.upper()}: {st} -> {u}")
+        return "\n".join(lines)
 
     def _on_refresh_clips() -> Any:
         exported = sorted(
@@ -346,6 +371,15 @@ def create_review_tab(orchestrator: JobOrchestrator, db: DatabaseManager) -> Non
     save_secrets_btn.click(_on_save_secrets, inputs=[save_secrets_box], outputs=[uploader_status_box])
     upload_btn.click(
         _on_upload_short,
-        inputs=[clip_selector, title_box, desc_box, tags_box, privacy_dropdown, publish_at_box],
+        inputs=[
+            clip_selector,
+            title_box,
+            desc_box,
+            tags_box,
+            privacy_dropdown,
+            publish_at_box,
+            platforms_checkbox,
+            dry_run_checkbox,
+        ],
         outputs=[upload_status_box],
     )
