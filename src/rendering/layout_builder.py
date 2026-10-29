@@ -51,12 +51,12 @@ class LayoutBuilder:
             filters.append(
                 "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=28:2,eq=brightness=-0.12[bg]"
             )
-            # 2. Foreground: Center 4:3 action zone scaled to 1080x1280
+            # 2. Foreground: Center 1:1 square action zone scaled to 1080x1080 (zero aspect distortion)
             filters.append(
-                "[0:v]crop=ih*4/3:ih:(iw-ow)/2:0,scale=1080:1280:flags=lanczos[fg]"
+                "[0:v]crop=ih:ih:(iw-ow)/2:0,scale=1080:1080:flags=lanczos[fg]"
             )
-            # 3. Overlay foreground centered vertically at y=320 (leaving 320px top and bottom)
-            filters.append("[bg][fg]overlay=(W-w)/2:320[v_comp]")
+            # 3. Overlay foreground centered vertically at y=420 (leaving 420px top and bottom for hook/subtitles)
+            filters.append("[bg][fg]overlay=(W-w)/2:420[v_comp]")
 
         elif layout_mode == LayoutMode.LAYOUT_A_BLUR_FIT:
             # 1. Background: Blurred, 12% darkened 1080x1920
@@ -75,11 +75,11 @@ class LayoutBuilder:
                 filters.append(
                     "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=28:2,eq=brightness=-0.12[bg]"
                 )
-                # 2. Cutscene foreground 4:3 fit scaled to 1080x1440
+                # 2. Cutscene foreground 4:3 fit scaled to 1080x810 (exact 4:3 ratio: 1080/810 = 1.333)
                 filters.append(
-                    "[0:v]crop=ih*4/3:ih:(iw-ow)/2:0,scale=1080:1440:flags=lanczos[fg]"
+                    "[0:v]crop=ih*4/3:ih:(iw-ow)/2:0,scale=1080:810:flags=lanczos[fg]"
                 )
-                # 3. Cutscene composite: 4:3 centered over blurred background
+                # 3. Cutscene composite: 4:3 centered over blurred background (y = (1920-810)/2 = 555)
                 filters.append("[bg][fg]overlay=(W-w)/2:(H-h)/2[c43]")
 
                 # 4. Standard 9:16 center crop zoom
@@ -123,9 +123,9 @@ class LayoutBuilder:
             filters.append(
                 "[0:v]scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,boxblur=28:2,eq=brightness=-0.12[bg]"
             )
-            # 2. Foreground: Center 4:3 action zone scaled to 1080x1440
-            filters.append("[0:v]crop=ih*4/3:ih:(iw-ow)/2:0,scale=1080:1440:flags=lanczos[fg]")
-            # 3. Centered overlay on 1080x1920 canvas
+            # 2. Foreground: Center 4:3 action zone scaled to 1080x810 (exact 4:3 ratio: 1080/810 = 1.333, zero distortion)
+            filters.append("[0:v]crop=ih*4/3:ih:(iw-ow)/2:0,scale=1080:810:flags=lanczos[fg]")
+            # 3. Centered overlay on 1080x1920 canvas (y = (1920-810)/2 = 555)
             filters.append("[bg][fg]overlay=(W-w)/2:(H-h)/2[v_comp]")
 
         elif layout_mode == LayoutMode.LAYOUT_4_3_HORIZONTAL:

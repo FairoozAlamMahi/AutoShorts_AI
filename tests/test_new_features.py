@@ -213,7 +213,7 @@ def test_layout_4_3_filtergraphs():
     """Verifies FFmpeg filtergraphs for 4:3 Blur Fit ('Show It All') and 4:3 Horizontal Center Crop."""
     fg_blur = LayoutBuilder.build_filtergraph(layout_mode=LayoutMode.LAYOUT_4_3_BLUR_FIT)
     assert "scale=1080:1920" in fg_blur
-    assert "scale=1080:1440" in fg_blur
+    assert "scale=1080:810" in fg_blur
     assert "boxblur=28:2" in fg_blur
     assert "overlay=(W-w)/2:(H-h)/2" in fg_blur
 
