@@ -51,3 +51,12 @@ temp_rerender*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Concat Repository & Tool Binaries
+concat_repo/
+tools/
+*.msi
+*.exe
+
+# Temporary Processing Clones
+temp_*
